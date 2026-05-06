@@ -9,6 +9,11 @@ class ForgotPasswordPage extends StatefulWidget {
 }
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+
+  bool _isLoading = false;
+
   static const Color primaryColor = Color(0xFF002045);
   static const Color secondaryColor = Color(0xFF875200);
   static const Color surfaceColor = Color(0xFFF9F9FF);
@@ -16,6 +21,52 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   static const Color onSurfaceVariant = Color(0xFF43474E);
   static const Color surfaceContainerHighest = Color(0xFFD9E3F9);
   static const Color surfaceContainerLow = Color(0xFFF0F3FA);
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Email tidak boleh kosong';
+    }
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(value)) {
+      return 'Format email tidak valid';
+    }
+    return null;
+  }
+
+  Future<void> _handleReset() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Link reset telah dikirim ke email Anda',
+            style: GoogleFonts.publicSans(color: Colors.white),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,110 +153,138 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ],
       ),
       padding: const EdgeInsets.all(32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'ALAMAT EMAIL',
-            style: GoogleFonts.publicSans(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: onSurfaceVariant,
-              letterSpacing: 0.6,
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            decoration: InputDecoration(
-              hintText: 'nama@email.com',
-              hintStyle: GoogleFonts.publicSans(
-                color: outlineVariant,
-                fontSize: 16,
-              ),
-              prefixIcon: const Icon(Icons.mail_outline, color: outlineVariant),
-              filled: true,
-              fillColor: surfaceContainerLow,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: outlineVariant.withValues(alpha: 0.5)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: outlineVariant.withValues(alpha: 0.5)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: primaryColor, width: 2),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'ALAMAT EMAIL',
+              style: GoogleFonts.publicSans(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: onSurfaceVariant,
+                letterSpacing: 0.6,
               ),
             ),
-            style: GoogleFonts.publicSans(fontSize: 16),
-            keyboardType: TextInputType.emailAddress,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Kami akan mengirimkan tautan verifikasi ke email ini.',
-            style: GoogleFonts.publicSans(
-              fontSize: 12,
-              color: onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _emailController,
+              validator: _validateEmail,
+              decoration: InputDecoration(
+                hintText: 'nama@email.com',
+                hintStyle: GoogleFonts.publicSans(
+                  color: outlineVariant,
+                  fontSize: 16,
                 ),
-                elevation: 4,
-                shadowColor: primaryColor.withValues(alpha: 0.2),
+                prefixIcon: const Icon(Icons.mail_outline, color: outlineVariant),
+                filled: true,
+                fillColor: surfaceContainerLow,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      BorderSide(color: outlineVariant.withValues(alpha: 0.5)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      BorderSide(color: outlineVariant.withValues(alpha: 0.5)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      const BorderSide(color: primaryColor, width: 2),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.red, width: 2),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.red, width: 2),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
               ),
+              style: GoogleFonts.publicSans(fontSize: 16),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Kami akan mengirimkan tautan verifikasi ke email ini.',
+              style: GoogleFonts.publicSans(
+                fontSize: 12,
+                color: onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _handleReset,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 4,
+                  shadowColor: primaryColor.withValues(alpha: 0.2),
+                  disabledBackgroundColor: primaryColor.withValues(alpha: 0.6),
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.5,
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Kirim Instruksi',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.send, size: 18),
+                        ],
+                      ),
+              ),
+            ),
+            const SizedBox(height: 32),
+            Divider(color: outlineVariant.withValues(alpha: 0.3)),
+            const SizedBox(height: 24),
+            GestureDetector(
+              onTap: () {
+                Navigator.pop(context);
+              },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const Icon(Icons.arrow_back, size: 16, color: primaryColor),
+                  const SizedBox(width: 8),
                   Text(
-                    'Kirim Instruksi',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                    'Kembali ke Login',
+                    style: GoogleFonts.publicSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: primaryColor,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.send, size: 18),
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 32),
-          Divider(color: outlineVariant.withValues(alpha: 0.3)),
-          const SizedBox(height: 24),
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.arrow_back, size: 16, color: primaryColor),
-                const SizedBox(width: 8),
-                Text(
-                  'Kembali ke Login',
-                  style: GoogleFonts.publicSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: primaryColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

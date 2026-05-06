@@ -83,7 +83,9 @@ class _LoginPagesState extends State<LoginPages> {
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const DashboardPage()),
+          MaterialPageRoute(
+            builder: (context) => DashboardPage(userEmail: _emailController.text),
+          ),
         );
       }
     } else {
