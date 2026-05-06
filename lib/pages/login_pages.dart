@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'forgot_password_page.dart';
 import 'dashboard_page.dart';
 
 class LoginPages extends StatefulWidget {
@@ -11,16 +10,101 @@ class LoginPages extends StatefulWidget {
 }
 
 class _LoginPagesState extends State<LoginPages> {
-  bool _obscurePassword = true;
-  bool _rememberMe = false;
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  bool _isLoading = false;
+  bool _isPasswordVisible = false;
+  String? _errorMessage;
 
   static const Color primaryColor = Color(0xFF002045);
   static const Color secondaryColor = Color(0xFF875200);
   static const Color surfaceColor = Color(0xFFF9F9FF);
   static const Color outlineVariant = Color(0xFFC4C6CF);
   static const Color onSurfaceVariant = Color(0xFF43474E);
+  static const Color surfaceContainerLow = Color(0xFFF0F3FA);
   static const Color primaryFixed = Color(0xFFD6E3FF);
   static const Color secondaryFixed = Color(0xFFFFDDBA);
+
+  static const String _mockEmail = 'admin@test.com';
+  static const String _mockPassword = 'Admin123';
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Email tidak boleh kosong';
+    }
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(value)) {
+      return 'Format email tidak valid';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Password tidak boleh kosong';
+    }
+    if (value.length < 8) {
+      return 'Password minimal 8 karakter';
+    }
+    final hasLetter = RegExp(r'[a-zA-Z]').hasMatch(value);
+    final hasNumber = RegExp(r'[0-9]').hasMatch(value);
+    if (!hasLetter || !hasNumber) {
+      return 'Password harus mengandung huruf dan angka';
+    }
+    return null;
+  }
+
+  Future<void> _handleLogin() async {
+    setState(() {
+      _errorMessage = null;
+    });
+
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (_emailController.text == _mockEmail &&
+        _passwordController.text == _mockPassword) {
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DashboardPage()),
+        );
+      }
+    } else {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Email atau password salah';
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Login gagal: $_errorMessage',
+              style: GoogleFonts.publicSans(color: Colors.white),
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -228,43 +312,56 @@ class _LoginPagesState extends State<LoginPages> {
   }
 
   Widget _buildLoginFormContent() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Selamat Datang',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 36,
-            fontWeight: FontWeight.w700,
-            color: primaryColor,
+    return Form(
+      key: _formKey,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Selamat Datang',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 36,
+              fontWeight: FontWeight.w700,
+              color: primaryColor,
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Silakan masuk untuk melanjutkan akses ke ekosistem kuliner kami.',
-          style: GoogleFonts.publicSans(
-            fontSize: 16,
-            color: onSurfaceVariant,
+          const SizedBox(height: 8),
+          Text(
+            'Silakan masuk untuk melanjutkan akses ke ekosistem kuliner kami.',
+            style: GoogleFonts.publicSans(
+              fontSize: 16,
+              color: onSurfaceVariant,
+            ),
           ),
-        ),
-        const SizedBox(height: 40),
-        _buildIdentityField(),
-        const SizedBox(height: 24),
-        _buildPasswordField(),
-        const SizedBox(height: 16),
-        _buildRememberRow(),
-        const SizedBox(height: 32),
-        _buildLoginButton(),
-        const SizedBox(height: 32),
-        _buildDivider(),
-        const SizedBox(height: 24),
-        _buildSignupLink(),
-      ],
+          const SizedBox(height: 40),
+          _buildEmailField(),
+          const SizedBox(height: 24),
+          _buildPasswordField(),
+          if (_errorMessage != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              _errorMessage!,
+              style: GoogleFonts.publicSans(
+                fontSize: 14,
+                color: Colors.red,
+              ),
+            ),
+          ],
+          const SizedBox(height: 16),
+          _buildRememberRow(),
+          const SizedBox(height: 32),
+          _buildLoginButton(),
+          const SizedBox(height: 32),
+          _buildDivider(),
+          const SizedBox(height: 24),
+          _buildSignupLink(),
+        ],
+      ),
     );
   }
 
-  Widget _buildIdentityField() {
+  Widget _buildEmailField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -278,7 +375,9 @@ class _LoginPagesState extends State<LoginPages> {
           ),
         ),
         const SizedBox(height: 8),
-        TextField(
+        TextFormField(
+          controller: _emailController,
+          validator: _validateEmail,
           decoration: InputDecoration(
             hintText: 'Contoh: merchant@denpasar.go.id',
             hintStyle: GoogleFonts.publicSans(
@@ -287,7 +386,7 @@ class _LoginPagesState extends State<LoginPages> {
             ),
             prefixIcon: const Icon(Icons.mail_outline, color: outlineVariant),
             filled: true,
-            fillColor: const Color(0xFFF0F3FA),
+            fillColor: surfaceContainerLow,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: outlineVariant.withValues(alpha: 0.5)),
@@ -300,12 +399,21 @@ class _LoginPagesState extends State<LoginPages> {
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: primaryColor, width: 2),
             ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red, width: 2),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red, width: 2),
+            ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 16,
             ),
           ),
           style: GoogleFonts.publicSans(fontSize: 16),
+          keyboardType: TextInputType.emailAddress,
         ),
       ],
     );
@@ -329,12 +437,7 @@ class _LoginPagesState extends State<LoginPages> {
             ),
             GestureDetector(
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ForgotPasswordPage(),
-                  ),
-                );
+                Navigator.pushNamed(context, '/forgot-password');
               },
               child: Text(
                 'LUPA PASSWORD?',
@@ -348,8 +451,10 @@ class _LoginPagesState extends State<LoginPages> {
           ],
         ),
         const SizedBox(height: 8),
-        TextField(
-          obscureText: _obscurePassword,
+        TextFormField(
+          controller: _passwordController,
+          obscureText: !_isPasswordVisible,
+          validator: _validatePassword,
           decoration: InputDecoration(
             hintText: '••••••••',
             hintStyle: GoogleFonts.publicSans(
@@ -359,17 +464,19 @@ class _LoginPagesState extends State<LoginPages> {
             prefixIcon: const Icon(Icons.lock_outline, color: outlineVariant),
             suffixIcon: IconButton(
               icon: Icon(
-                _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                _isPasswordVisible
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
                 color: outlineVariant,
               ),
               onPressed: () {
                 setState(() {
-                  _obscurePassword = !_obscurePassword;
+                  _isPasswordVisible = !_isPasswordVisible;
                 });
               },
             ),
             filled: true,
-            fillColor: const Color(0xFFF0F3FA),
+            fillColor: surfaceContainerLow,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: outlineVariant.withValues(alpha: 0.5)),
@@ -381,6 +488,14 @@ class _LoginPagesState extends State<LoginPages> {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: primaryColor, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red, width: 2),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -400,12 +515,8 @@ class _LoginPagesState extends State<LoginPages> {
           width: 20,
           height: 20,
           child: Checkbox(
-            value: _rememberMe,
-            onChanged: (value) {
-              setState(() {
-                _rememberMe = value ?? false;
-              });
-            },
+            value: false,
+            onChanged: (value) {},
             activeColor: primaryColor,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(4),
@@ -429,12 +540,7 @@ class _LoginPagesState extends State<LoginPages> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const DashboardPage()),
-          );
-        },
+        onPressed: _isLoading ? null : _handleLogin,
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
@@ -444,21 +550,31 @@ class _LoginPagesState extends State<LoginPages> {
           ),
           elevation: 8,
           shadowColor: primaryColor.withValues(alpha: 0.2),
+          disabledBackgroundColor: primaryColor.withValues(alpha: 0.6),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Masuk',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+        child: _isLoading
+            ? const SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Masuk',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.arrow_forward, size: 20),
+                ],
               ),
-            ),
-            const SizedBox(width: 8),
-            const Icon(Icons.arrow_forward, size: 20),
-          ],
-        ),
       ),
     );
   }

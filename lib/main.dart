@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:usada_rare/pages/login_pages.dart';
+import 'package:usada_rare/pages/forgot_password_page.dart';
+import 'package:usada_rare/pages/dashboard_page.dart';
+import 'package:usada_rare/pages/profile_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -19,7 +22,13 @@ class MyApp extends StatelessWidget {
         ),
         scaffoldBackgroundColor: const Color(0xFFF9F9FF),
       ),
-      home: const LoginPages(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const LoginPages(),
+        '/forgot-password': (context) => const ForgotPasswordPage(),
+        '/dashboard': (context) => const DashboardPage(),
+        '/profile': (context) => const ProfilePage(),
+      },
     );
   }
 }

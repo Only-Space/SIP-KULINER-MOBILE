@@ -196,7 +196,9 @@ class _DashboardPageState extends State<DashboardPage> {
         Padding(
           padding: const EdgeInsets.only(right: 16, left: 4),
           child: GestureDetector(
-            onTap: () {},
+            onTap: () {
+              Navigator.pushNamed(context, '/profile');
+            },
             child: Container(
               width: 36,
               height: 36,
@@ -407,7 +409,13 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _navItem(IconData icon, String label, int index, {bool isActive = false}) {
     final color = (index == _selectedNavIndex) ? secondaryContainer : outlineVariant;
     return GestureDetector(
-      onTap: () => setState(() => _selectedNavIndex = index),
+      onTap: () {
+        if (index == 3) {
+          Navigator.pushNamed(context, '/profile');
+        } else {
+          setState(() => _selectedNavIndex = index);
+        }
+      },
       child: Container(
         width: 64,
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
