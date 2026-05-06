@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'forgot_password_page.dart';
 
 class LoginPages extends StatefulWidget {
   const LoginPages({super.key});
@@ -176,7 +177,7 @@ class _LoginPagesState extends State<LoginPages> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.verified_user,
+                    const Icon(Icons.verified_user_outlined,
                         color: secondaryFixed, size: 36),
                     const SizedBox(width: 8),
                     Text(
@@ -326,7 +327,14 @@ class _LoginPagesState extends State<LoginPages> {
               ),
             ),
             GestureDetector(
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ForgotPasswordPage(),
+                  ),
+                );
+              },
               child: Text(
                 'LUPA PASSWORD?',
                 style: GoogleFonts.publicSans(
