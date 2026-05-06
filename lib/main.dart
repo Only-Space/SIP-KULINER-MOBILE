@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'app_theme.dart';
 import 'package:usada_rare/pages/login_pages.dart';
 import 'package:usada_rare/pages/forgot_password_page.dart';
 import 'package:usada_rare/pages/dashboard_page.dart';
@@ -18,15 +20,19 @@ class MyApp extends StatelessWidget {
       title: 'SIPKULINER',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF002045),
+          seedColor: AppColors.primary,
+          primary: AppColors.primary,
+          surface: AppColors.surface,
         ),
-        scaffoldBackgroundColor: const Color(0xFFF9F9FF),
+        scaffoldBackgroundColor: AppColors.surface,
+        textTheme: GoogleFonts.publicSansTextTheme(),
+        primaryTextTheme: GoogleFonts.plusJakartaSansTextTheme(),
       ),
       initialRoute: '/',
       routes: {
         '/': (context) => const LoginPages(),
         '/forgot-password': (context) => const ForgotPasswordPage(),
-        '/dashboard': (context) => const DashboardPage(userEmail: 'Guest'),
+        '/dashboard': (context) => const DashboardPage(),
         '/profile': (context) => const ProfilePage(),
       },
     );

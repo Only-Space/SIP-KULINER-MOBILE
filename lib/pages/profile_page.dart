@@ -1,22 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../app_theme.dart';
 import 'login_pages.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
-  static const Color primaryColor = Color(0xFF002045);
-  static const Color secondaryColor = Color(0xFF875200);
-  static const Color surfaceColor = Color(0xFFF9F9FF);
-  static const Color onSurfaceVariant = Color(0xFF43474E);
-  static const Color outlineVariant = Color(0xFFC4C6CF);
-  static const Color secondaryContainer = Color(0xFFFFB55C);
-  static const Color onSecondaryContainer = Color(0xFF744600);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: surfaceColor,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
@@ -26,11 +19,11 @@ class ProfilePage extends StatelessWidget {
           style: GoogleFonts.plusJakartaSans(
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: primaryColor,
+            color: AppColors.primary,
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: primaryColor),
+          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -58,7 +51,7 @@ class ProfilePage extends StatelessWidget {
           height: 100,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: outlineVariant, width: 2),
+            border: Border.all(color: AppColors.outlineVariant, width: 2),
             image: const DecorationImage(
               image: NetworkImage(
                 'https://lh3.googleusercontent.com/aida-public/AB6AXuBAHD65XDZkfXMU0KcnlMJO5mkQAl0e0DZ-Ymalw19L3eD82owQOXfi9P6FeA2mF7daEwuYa6TNIIF14fBqsQJ0oaYDy53uXZkL952sjf3axogX3OZseRIjz0xUONZHQv4yMbEziEkXZmjQci2kK3iE_Oe7oqSgv_wpZXrBu-YA-qw9oIJ4YcJVyKA5dKq6KKypGzY1bg31Vm87D0XEttKx4UJToChvIKp5w4MZRZmghfNes79V6zDuKeowc4eRVVvEbbtNdM_-pbNt',
@@ -73,7 +66,7 @@ class ProfilePage extends StatelessWidget {
           style: GoogleFonts.plusJakartaSans(
             fontSize: 24,
             fontWeight: FontWeight.w700,
-            color: primaryColor,
+            color: AppColors.primary,
           ),
         ),
         const SizedBox(height: 4),
@@ -81,14 +74,14 @@ class ProfilePage extends StatelessWidget {
           'admin@test.com',
           style: GoogleFonts.publicSans(
             fontSize: 16,
-            color: onSurfaceVariant,
+            color: AppColors.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           decoration: BoxDecoration(
-            color: secondaryContainer,
+            color: AppColors.secondaryContainer,
             borderRadius: BorderRadius.circular(9999),
           ),
           child: Text(
@@ -96,7 +89,7 @@ class ProfilePage extends StatelessWidget {
             style: GoogleFonts.publicSans(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: onSecondaryContainer,
+              color: AppColors.onSecondaryContainer,
             ),
           ),
         ),
@@ -110,7 +103,9 @@ class ProfilePage extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: outlineVariant.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: AppColors.outlineVariant.withValues(alpha: 0.3),
+        ),
       ),
       child: Column(
         children: [
@@ -135,7 +130,7 @@ class ProfilePage extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Row(
           children: [
-            Icon(icon, color: primaryColor, size: 24),
+            Icon(icon, color: AppColors.primary, size: 24),
             const SizedBox(width: 16),
             Expanded(
               child: Text(
@@ -143,11 +138,15 @@ class ProfilePage extends StatelessWidget {
                 style: GoogleFonts.publicSans(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: const Color(0xFF121C2C),
+                  color: AppColors.onSurface,
                 ),
               ),
             ),
-            const Icon(Icons.chevron_right, color: outlineVariant, size: 20),
+            Icon(
+              Icons.chevron_right,
+              color: AppColors.outlineVariant,
+              size: 20,
+            ),
           ],
         ),
       ),
@@ -158,7 +157,7 @@ class ProfilePage extends StatelessWidget {
     return Divider(
       height: 1,
       thickness: 1,
-      color: outlineVariant.withValues(alpha: 0.2),
+      color: AppColors.outlineVariant.withValues(alpha: 0.2),
       indent: 60,
     );
   }
@@ -172,7 +171,7 @@ class ProfilePage extends StatelessWidget {
           onPressed: () {
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (context) => const LoginPages()),
+              MaterialPageRoute(builder: (_) => const LoginPages()),
               (route) => false,
             );
           },

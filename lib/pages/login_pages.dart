@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../app_theme.dart';
+import '../utils/validators.dart';
 import 'dashboard_page.dart';
 
 class LoginPages extends StatefulWidget {
@@ -18,17 +20,8 @@ class _LoginPagesState extends State<LoginPages> {
   bool _isPasswordVisible = false;
   String? _errorMessage;
 
-  static const Color primaryColor = Color(0xFF002045);
-  static const Color secondaryColor = Color(0xFF875200);
-  static const Color surfaceColor = Color(0xFFF9F9FF);
-  static const Color outlineVariant = Color(0xFFC4C6CF);
-  static const Color onSurfaceVariant = Color(0xFF43474E);
-  static const Color surfaceContainerLow = Color(0xFFF0F3FA);
-  static const Color primaryFixed = Color(0xFFD6E3FF);
-  static const Color secondaryFixed = Color(0xFFFFDDBA);
-
-  static const String _mockEmail = 'admin@test.com';
-  static const String _mockPassword = 'Admin123';
+  static const _mockEmail = 'admin@test.com';
+  static const _mockPassword = 'Admin123';
 
   @override
   void dispose() {
@@ -37,96 +30,47 @@ class _LoginPagesState extends State<LoginPages> {
     super.dispose();
   }
 
-  String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Email tidak boleh kosong';
-    }
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(value)) {
-      return 'Format email tidak valid';
-    }
-    return null;
-  }
-
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Password tidak boleh kosong';
-    }
-    if (value.length < 8) {
-      return 'Password minimal 8 karakter';
-    }
-    final hasLetter = RegExp(r'[a-zA-Z]').hasMatch(value);
-    final hasNumber = RegExp(r'[0-9]').hasMatch(value);
-    if (!hasLetter || !hasNumber) {
-      return 'Password harus mengandung huruf dan angka';
-    }
-    return null;
-  }
-
   Future<void> _handleLogin() async {
-    setState(() {
-      _errorMessage = null;
-    });
+    setState(() => _errorMessage = null);
 
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
-
+    setState(() => _isLoading = true);
     await Future.delayed(const Duration(seconds: 1));
+
+    if (!mounted) return;
 
     if (_emailController.text == _mockEmail &&
         _passwordController.text == _mockPassword) {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DashboardPage(userEmail: _emailController.text),
-          ),
-        );
-      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => DashboardPage(userEmail: _emailController.text),
+        ),
+      );
     } else {
-      if (mounted) {
-        setState(() {
-          _errorMessage = 'Email atau password salah';
-          _isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Login gagal: $_errorMessage',
-              style: GoogleFonts.publicSans(color: Colors.white),
-            ),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
+      setState(() {
+        _errorMessage = 'Email atau password salah';
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Login gagal: $_errorMessage',
+            style: GoogleFonts.publicSans(color: Colors.white),
           ),
-        );
-      }
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: surfaceColor,
-      body: Stack(
-        children: [
-          _buildBackground(),
-          SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                if (constraints.maxWidth > 700) {
-                  return _buildWideLayout();
-                }
-                return _buildMobileLayout();
-              },
-            ),
-          ),
-        ],
-      ),
+      backgroundColor: AppColors.surface,
+      body: Stack(children: [_buildBackground(), _buildBody()]),
     );
   }
 
@@ -140,10 +84,9 @@ class _LoginPagesState extends State<LoginPages> {
             width: 400,
             height: 400,
             decoration: BoxDecoration(
-              color: primaryFixed,
+              color: AppColors.primaryFixed,
               borderRadius: BorderRadius.circular(200),
             ),
-            child: const SizedBox(),
           ),
         ),
         Positioned(
@@ -153,13 +96,24 @@ class _LoginPagesState extends State<LoginPages> {
             width: 400,
             height: 400,
             decoration: BoxDecoration(
-              color: secondaryFixed,
+              color: AppColors.secondaryFixed,
               borderRadius: BorderRadius.circular(200),
             ),
-            child: const SizedBox(),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildBody() {
+    return SafeArea(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return constraints.maxWidth > 700
+              ? _buildWideLayout()
+              : _buildMobileLayout();
+        },
+      ),
     );
   }
 
@@ -178,7 +132,9 @@ class _LoginPagesState extends State<LoginPages> {
               offset: Offset(0, 32),
             ),
           ],
-          border: Border.all(color: outlineVariant.withValues(alpha: 0.3)),
+          border: Border.all(
+            color: AppColors.outlineVariant.withValues(alpha: 0.3),
+          ),
         ),
         child: Row(
           children: [
@@ -202,7 +158,7 @@ class _LoginPagesState extends State<LoginPages> {
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 32,
                 fontWeight: FontWeight.w700,
-                color: primaryColor,
+                color: AppColors.primary,
               ),
             ),
             const SizedBox(height: 32),
@@ -217,7 +173,9 @@ class _LoginPagesState extends State<LoginPages> {
                     offset: Offset(0, 16),
                   ),
                 ],
-                border: Border.all(color: outlineVariant.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: AppColors.outlineVariant.withValues(alpha: 0.3),
+                ),
               ),
               padding: const EdgeInsets.all(24),
               child: _buildLoginFormContent(),
@@ -233,7 +191,7 @@ class _LoginPagesState extends State<LoginPages> {
   Widget _buildBrandingSide() {
     return Container(
       decoration: BoxDecoration(
-        color: primaryColor,
+        color: AppColors.primary,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(32),
           bottomLeft: Radius.circular(32),
@@ -251,7 +209,10 @@ class _LoginPagesState extends State<LoginPages> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, primaryColor.withValues(alpha: 0.8)],
+                  colors: [
+                    Colors.transparent,
+                    AppColors.primary.withValues(alpha: 0.8),
+                  ],
                 ),
               ),
             ),
@@ -264,8 +225,11 @@ class _LoginPagesState extends State<LoginPages> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.verified_user_outlined,
-                        color: secondaryFixed, size: 36),
+                    const Icon(
+                      Icons.verified_user_outlined,
+                      color: AppColors.secondaryFixed,
+                      size: 36,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'SIPKULINER',
@@ -282,20 +246,30 @@ class _LoginPagesState extends State<LoginPages> {
                   'Pusat Digitalisasi Kuliner &\nPemberdayaan UMKM Kota\nDenpasar.',
                   style: GoogleFonts.publicSans(
                     fontSize: 18,
-                    color: primaryFixed.withValues(alpha: 0.9),
+                    color: AppColors.primaryFixed.withValues(alpha: 0.9),
                     height: 1.6,
                   ),
                 ),
                 const SizedBox(height: 24),
                 Row(
                   children: [
-                    Container(height: 4, width: 48, color: secondaryFixed),
+                    Container(
+                      height: 4,
+                      width: 48,
+                      color: AppColors.secondaryFixed,
+                    ),
                     const SizedBox(width: 8),
-                    Container(height: 4, width: 16,
-                        color: Colors.white.withValues(alpha: 0.3)),
+                    Container(
+                      height: 4,
+                      width: 16,
+                      color: Colors.white.withValues(alpha: 0.3),
+                    ),
                     const SizedBox(width: 8),
-                    Container(height: 4, width: 16,
-                        color: Colors.white.withValues(alpha: 0.3)),
+                    Container(
+                      height: 4,
+                      width: 16,
+                      color: Colors.white.withValues(alpha: 0.3),
+                    ),
                   ],
                 ),
               ],
@@ -325,7 +299,7 @@ class _LoginPagesState extends State<LoginPages> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 36,
               fontWeight: FontWeight.w700,
-              color: primaryColor,
+              color: AppColors.primary,
             ),
           ),
           const SizedBox(height: 8),
@@ -333,7 +307,7 @@ class _LoginPagesState extends State<LoginPages> {
             'Silakan masuk untuk melanjutkan akses ke ekosistem kuliner kami.',
             style: GoogleFonts.publicSans(
               fontSize: 16,
-              color: onSurfaceVariant,
+              color: AppColors.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 40),
@@ -344,10 +318,7 @@ class _LoginPagesState extends State<LoginPages> {
             const SizedBox(height: 12),
             Text(
               _errorMessage!,
-              style: GoogleFonts.publicSans(
-                fontSize: 14,
-                color: Colors.red,
-              ),
+              style: GoogleFonts.publicSans(fontSize: 14, color: Colors.red),
             ),
           ],
           const SizedBox(height: 16),
@@ -367,52 +338,14 @@ class _LoginPagesState extends State<LoginPages> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'EMAIL ATAU NOMOR TELEPON',
-          style: GoogleFonts.publicSans(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: onSurfaceVariant,
-            letterSpacing: 0.6,
-          ),
-        ),
+        _buildLabel('EMAIL ATAU NOMOR TELEPON'),
         const SizedBox(height: 8),
         TextFormField(
           controller: _emailController,
-          validator: _validateEmail,
-          decoration: InputDecoration(
-            hintText: 'Contoh: merchant@denpasar.go.id',
-            hintStyle: GoogleFonts.publicSans(
-              color: outlineVariant,
-              fontSize: 16,
-            ),
-            prefixIcon: const Icon(Icons.mail_outline, color: outlineVariant),
-            filled: true,
-            fillColor: surfaceContainerLow,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: outlineVariant.withValues(alpha: 0.5)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: outlineVariant.withValues(alpha: 0.5)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: primaryColor, width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.red, width: 2),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.red, width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
-            ),
+          validator: FormValidators.validateEmail,
+          decoration: _inputDecoration(
+            hint: 'Contoh: merchant@denpasar.go.id',
+            icon: Icons.mail_outline,
           ),
           style: GoogleFonts.publicSans(fontSize: 16),
           keyboardType: TextInputType.emailAddress,
@@ -428,25 +361,15 @@ class _LoginPagesState extends State<LoginPages> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'KATA SANDI',
-              style: GoogleFonts.publicSans(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: onSurfaceVariant,
-                letterSpacing: 0.6,
-              ),
-            ),
+            _buildLabel('KATA SANDI'),
             GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(context, '/forgot-password');
-              },
+              onTap: () => Navigator.pushNamed(context, '/forgot-password'),
               child: Text(
                 'LUPA PASSWORD?',
                 style: GoogleFonts.publicSans(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: primaryColor,
+                  color: AppColors.primary,
                 ),
               ),
             ),
@@ -456,57 +379,79 @@ class _LoginPagesState extends State<LoginPages> {
         TextFormField(
           controller: _passwordController,
           obscureText: !_isPasswordVisible,
-          validator: _validatePassword,
-          decoration: InputDecoration(
-            hintText: '••••••••',
-            hintStyle: GoogleFonts.publicSans(
-              color: outlineVariant,
-              fontSize: 16,
-            ),
-            prefixIcon: const Icon(Icons.lock_outline, color: outlineVariant),
-            suffixIcon: IconButton(
+          validator: FormValidators.validatePassword,
+          decoration: _inputDecoration(
+            hint: '••••••••',
+            icon: Icons.lock_outline,
+            suffix: IconButton(
               icon: Icon(
                 _isPasswordVisible
                     ? Icons.visibility_off_outlined
                     : Icons.visibility_outlined,
-                color: outlineVariant,
+                color: AppColors.outlineVariant,
               ),
-              onPressed: () {
-                setState(() {
-                  _isPasswordVisible = !_isPasswordVisible;
-                });
-              },
-            ),
-            filled: true,
-            fillColor: surfaceContainerLow,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: outlineVariant.withValues(alpha: 0.5)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: outlineVariant.withValues(alpha: 0.5)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: primaryColor, width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.red, width: 2),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.red, width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
+              onPressed: () =>
+                  setState(() => _isPasswordVisible = !_isPasswordVisible),
             ),
           ),
           style: GoogleFonts.publicSans(fontSize: 16),
         ),
       ],
+    );
+  }
+
+  Widget _buildLabel(String text) {
+    return Text(
+      text,
+      style: GoogleFonts.publicSans(
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        color: AppColors.onSurfaceVariant,
+        letterSpacing: 0.6,
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration({
+    required String hint,
+    required IconData icon,
+    Widget? suffix,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: GoogleFonts.publicSans(
+        color: AppColors.outlineVariant,
+        fontSize: 16,
+      ),
+      prefixIcon: Icon(icon, color: AppColors.outlineVariant),
+      suffixIcon: suffix,
+      filled: true,
+      fillColor: AppColors.surfaceContainerLow,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: AppColors.outlineVariant.withValues(alpha: 0.5),
+        ),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: AppColors.outlineVariant.withValues(alpha: 0.5),
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );
   }
 
@@ -519,11 +464,13 @@ class _LoginPagesState extends State<LoginPages> {
           child: Checkbox(
             value: false,
             onChanged: (value) {},
-            activeColor: primaryColor,
+            activeColor: AppColors.primary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(4),
             ),
-            side: BorderSide(color: outlineVariant.withValues(alpha: 0.5)),
+            side: BorderSide(
+              color: AppColors.outlineVariant.withValues(alpha: 0.5),
+            ),
           ),
         ),
         const SizedBox(width: 12),
@@ -531,7 +478,7 @@ class _LoginPagesState extends State<LoginPages> {
           'Ingat saya di perangkat ini',
           style: GoogleFonts.publicSans(
             fontSize: 14,
-            color: onSurfaceVariant,
+            color: AppColors.onSurfaceVariant,
           ),
         ),
       ],
@@ -544,15 +491,15 @@ class _LoginPagesState extends State<LoginPages> {
       child: ElevatedButton(
         onPressed: _isLoading ? null : _handleLogin,
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
+          backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 18),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           elevation: 8,
-          shadowColor: primaryColor.withValues(alpha: 0.2),
-          disabledBackgroundColor: primaryColor.withValues(alpha: 0.6),
+          shadowColor: AppColors.primary.withValues(alpha: 0.2),
+          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.6),
         ),
         child: _isLoading
             ? const SizedBox(
@@ -584,7 +531,11 @@ class _LoginPagesState extends State<LoginPages> {
   Widget _buildDivider() {
     return Row(
       children: [
-        Expanded(child: Divider(color: outlineVariant.withValues(alpha: 0.3))),
+        Expanded(
+          child: Divider(
+            color: AppColors.outlineVariant.withValues(alpha: 0.3),
+          ),
+        ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
@@ -592,11 +543,15 @@ class _LoginPagesState extends State<LoginPages> {
             style: GoogleFonts.publicSans(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: outlineVariant,
+              color: AppColors.outlineVariant,
             ),
           ),
         ),
-        Expanded(child: Divider(color: outlineVariant.withValues(alpha: 0.3))),
+        Expanded(
+          child: Divider(
+            color: AppColors.outlineVariant.withValues(alpha: 0.3),
+          ),
+        ),
       ],
     );
   }
@@ -608,7 +563,7 @@ class _LoginPagesState extends State<LoginPages> {
           text: 'Belum memiliki akun? ',
           style: GoogleFonts.publicSans(
             fontSize: 16,
-            color: onSurfaceVariant,
+            color: AppColors.onSurfaceVariant,
           ),
           children: [
             WidgetSpan(
@@ -619,7 +574,7 @@ class _LoginPagesState extends State<LoginPages> {
                   style: GoogleFonts.publicSans(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: secondaryColor,
+                    color: AppColors.secondary,
                   ),
                 ),
               ),
@@ -640,7 +595,7 @@ class _LoginPagesState extends State<LoginPages> {
             style: GoogleFonts.publicSans(
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              color: outlineVariant,
+              color: AppColors.outlineVariant,
             ),
           ),
           const SizedBox(height: 12),
@@ -667,7 +622,7 @@ class _LoginPagesState extends State<LoginPages> {
         style: GoogleFonts.publicSans(
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          color: outlineVariant,
+          color: AppColors.outlineVariant,
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../app_theme.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -13,14 +14,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final _emailController = TextEditingController();
 
   bool _isLoading = false;
-
-  static const Color primaryColor = Color(0xFF002045);
-  static const Color secondaryColor = Color(0xFF875200);
-  static const Color surfaceColor = Color(0xFFF9F9FF);
-  static const Color outlineVariant = Color(0xFFC4C6CF);
-  static const Color onSurfaceVariant = Color(0xFF43474E);
-  static const Color surfaceContainerHighest = Color(0xFFD9E3F9);
-  static const Color surfaceContainerLow = Color(0xFFF0F3FA);
 
   @override
   void dispose() {
@@ -40,21 +33,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   }
 
   Future<void> _handleReset() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
-
+    setState(() => _isLoading = true);
     await Future.delayed(const Duration(seconds: 1));
 
     if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
-
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -71,7 +56,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: surfaceColor,
+      backgroundColor: AppColors.surface,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -103,13 +88,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           width: 80,
           height: 80,
           decoration: BoxDecoration(
-            color: surfaceContainerHighest,
+            color: AppColors.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(40),
           ),
           child: const Icon(
             Icons.lock_reset,
             size: 40,
-            color: primaryColor,
+            color: AppColors.primary,
           ),
         ),
         const SizedBox(height: 24),
@@ -118,7 +103,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           style: GoogleFonts.plusJakartaSans(
             fontSize: 32,
             fontWeight: FontWeight.w600,
-            color: primaryColor,
+            color: AppColors.primary,
           ),
         ),
         const SizedBox(height: 12),
@@ -128,7 +113,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             'Masukkan email terdaftar untuk menerima instruksi reset',
             style: GoogleFonts.publicSans(
               fontSize: 16,
-              color: onSurfaceVariant,
+              color: AppColors.onSurfaceVariant,
               height: 1.5,
             ),
             textAlign: TextAlign.center,
@@ -143,7 +128,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: outlineVariant),
+        border: Border.all(color: AppColors.outlineVariant),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),
@@ -158,55 +143,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'ALAMAT EMAIL',
-              style: GoogleFonts.publicSans(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: onSurfaceVariant,
-                letterSpacing: 0.6,
-              ),
-            ),
+            _buildLabel('ALAMAT EMAIL'),
             const SizedBox(height: 8),
             TextFormField(
               controller: _emailController,
               validator: _validateEmail,
-              decoration: InputDecoration(
-                hintText: 'nama@email.com',
-                hintStyle: GoogleFonts.publicSans(
-                  color: outlineVariant,
-                  fontSize: 16,
-                ),
-                prefixIcon: const Icon(Icons.mail_outline, color: outlineVariant),
-                filled: true,
-                fillColor: surfaceContainerLow,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                      BorderSide(color: outlineVariant.withValues(alpha: 0.5)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                      BorderSide(color: outlineVariant.withValues(alpha: 0.5)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                      const BorderSide(color: primaryColor, width: 2),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.red, width: 2),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.red, width: 2),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
+              decoration: _inputDecoration(
+                hint: 'nama@email.com',
+                icon: Icons.mail_outline,
               ),
               style: GoogleFonts.publicSans(fontSize: 16),
               keyboardType: TextInputType.emailAddress,
@@ -216,7 +160,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               'Kami akan mengirimkan tautan verifikasi ke email ini.',
               style: GoogleFonts.publicSans(
                 fontSize: 12,
-                color: onSurfaceVariant,
+                color: AppColors.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 24),
@@ -225,15 +169,17 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _handleReset,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
+                  backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   elevation: 4,
-                  shadowColor: primaryColor.withValues(alpha: 0.2),
-                  disabledBackgroundColor: primaryColor.withValues(alpha: 0.6),
+                  shadowColor: AppColors.primary.withValues(alpha: 0.2),
+                  disabledBackgroundColor: AppColors.primary.withValues(
+                    alpha: 0.6,
+                  ),
                 ),
                 child: _isLoading
                     ? const SizedBox(
@@ -261,23 +207,25 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               ),
             ),
             const SizedBox(height: 32),
-            Divider(color: outlineVariant.withValues(alpha: 0.3)),
+            Divider(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
             const SizedBox(height: 24),
             GestureDetector(
-              onTap: () {
-                Navigator.pop(context);
-              },
+              onTap: () => Navigator.pop(context),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.arrow_back, size: 16, color: primaryColor),
+                  const Icon(
+                    Icons.arrow_back,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'Kembali ke Login',
                     style: GoogleFonts.publicSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: primaryColor,
+                      color: AppColors.primary,
                     ),
                   ),
                 ],
@@ -286,6 +234,59 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLabel(String text) {
+    return Text(
+      text,
+      style: GoogleFonts.publicSans(
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        color: AppColors.onSurfaceVariant,
+        letterSpacing: 0.6,
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration({
+    required String hint,
+    required IconData icon,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: GoogleFonts.publicSans(
+        color: AppColors.outlineVariant,
+        fontSize: 16,
+      ),
+      prefixIcon: Icon(icon, color: AppColors.outlineVariant),
+      filled: true,
+      fillColor: AppColors.surfaceContainerLow,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: AppColors.outlineVariant.withValues(alpha: 0.5),
+        ),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: AppColors.outlineVariant.withValues(alpha: 0.5),
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );
   }
 
@@ -319,14 +320,16 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: surfaceContainerLow,
+        color: AppColors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: outlineVariant.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: AppColors.outlineVariant.withValues(alpha: 0.3),
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: secondaryColor, size: 24),
+          Icon(icon, color: AppColors.secondary, size: 24),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -337,7 +340,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   style: GoogleFonts.publicSans(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
-                    color: onSurfaceVariant,
+                    color: AppColors.onSurfaceVariant,
                     letterSpacing: 0.6,
                   ),
                 ),
@@ -347,7 +350,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   style: GoogleFonts.publicSans(
                     fontSize: 12,
                     height: 1.3,
-                    color: onSurfaceVariant,
+                    color: AppColors.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -369,7 +372,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: primaryColor,
+                color: AppColors.primary,
               ),
             ),
           ],
@@ -379,7 +382,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           '© 2024 SIPKULINER Denpasar. Supporting Local UMKM.',
           style: GoogleFonts.publicSans(
             fontSize: 11,
-            color: outlineVariant,
+            color: AppColors.outlineVariant,
           ),
         ),
         const SizedBox(height: 16),
@@ -404,7 +407,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         text,
         style: GoogleFonts.publicSans(
           fontSize: 11,
-          color: outlineVariant,
+          color: AppColors.outlineVariant,
         ),
       ),
     );
