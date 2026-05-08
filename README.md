@@ -27,12 +27,10 @@ Aplikasi mobile untuk menjelajahi kuliner lokal Bali. SIPKULINER membantu penggu
 
 ## Screenshot
 
-| Halaman | Gambar |
-|---------|--------|
-| **Login Page**<br><sub>Halaman login dengan validasi email dan password</sub> | ![Login Page](assets/images/WhatsApp%20Image%202026-05-08%20at%2010.26.40.jpeg) |
-| **Dashboard Page**<br><sub>Halaman utama dengan rekomendasi kuliner terdekat</sub> | ![Dashboard Page](assets/images/WhatsApp%20Image%202026-05-08%20at%2010.26.40%281%29.jpeg) |
-| **Profile Page**<br><sub>Halaman profil pengguna</sub> | ![Profile Page](assets/images/WhatsApp%20Image%202026-05-08%20at%2010.26.40%282%29.jpeg) |
-| **Forgot Password Page**<br><sub>Halaman lupa password</sub> | ![Forgot Password Page](assets/images/WhatsApp%20Image%202026-05-08%20at%2010.26.41.jpeg) |
+| Login Page | Dashboard Page | Profile Page | Forgot Password Page |
+|------------|----------------|--------------|---------------------|
+| ![Login](assets/images/WhatsApp%20Image%202026-05-08%20at%2010.26.40.jpeg) | ![Dashboard](assets/images/WhatsApp%20Image%202026-05-08%20at%2010.26.40%281%29.jpeg) | ![Profile](assets/images/WhatsApp%20Image%202026-05-08%20at%2010.26.40%282%29.jpeg) | ![Forgot](assets/images/WhatsApp%20Image%202026-05-08%20at%2010.26.41.jpeg) |
+| <sub>Halaman login dengan validasi email dan password</sub> | <sub>Halaman utama dengan rekomendasi kuliner terdekat</sub> | <sub>Halaman profil pengguna</sub> | <sub>Halaman lupa password</sub> |
 
 ## Assets
 
