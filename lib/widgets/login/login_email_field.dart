@@ -12,7 +12,7 @@ class LoginEmailField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildLabel('EMAIL ATAU NOMOR TELEPON'),
+        _buildLabel('EMAIL AJA'),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,

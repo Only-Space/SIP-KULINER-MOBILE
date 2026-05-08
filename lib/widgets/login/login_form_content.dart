@@ -59,8 +59,6 @@ class LoginFormContent extends StatelessWidget {
           const SizedBox(height: 24),
           const _DividerWithText('ATAU'),
           const SizedBox(height: 24),
-          const _DividerWithText('ATAU'),
-          const SizedBox(height: 24),
           const _SignupLink(),
         ],
       ),
