@@ -27,21 +27,12 @@ Aplikasi mobile untuk menjelajahi kuliner lokal Bali. SIPKULINER membantu penggu
 
 ## Screenshot
 
-### Login Page
-![Login Page](assets/images/WhatsApp%20Image%202026-05-08%20at%2010.26.40.jpeg)
-*Halaman login dengan validasi email dan password*
-
-### Dashboard Page
-![Dashboard Page](assets/images/WhatsApp%20Image%202026-05-08%20at%2010.26.40%281%29.jpeg)
-*Halaman utama dengan rekomendasi kuliner terdekat*
-
-### Profile Page
-![Profile Page](assets/images/WhatsApp%20Image%202026-05-08%20at%2010.26.40%282%29.jpeg)
-*Halaman profil pengguna*
-
-### Forgot Password Page
-![Forgot Password Page](assets/images/WhatsApp%20Image%202026-05-08%20at%2010.26.41.jpeg)
-*Halaman lupa password*
+| Halaman | Gambar |
+|---------|--------|
+| **Login Page**<br><sub>Halaman login dengan validasi email dan password</sub> | ![Login Page](assets/images/WhatsApp%20Image%202026-05-08%20at%2010.26.40.jpeg) |
+| **Dashboard Page**<br><sub>Halaman utama dengan rekomendasi kuliner terdekat</sub> | ![Dashboard Page](assets/images/WhatsApp%20Image%202026-05-08%20at%2010.26.40%281%29.jpeg) |
+| **Profile Page**<br><sub>Halaman profil pengguna</sub> | ![Profile Page](assets/images/WhatsApp%20Image%202026-05-08%20at%2010.26.40%282%29.jpeg) |
+| **Forgot Password Page**<br><sub>Halaman lupa password</sub> | ![Forgot Password Page](assets/images/WhatsApp%20Image%202026-05-08%20at%2010.26.41.jpeg) |
 
 ## Assets
 
@@ -61,12 +52,6 @@ flutter:
   assets:
     - assets/images/
 ```
-
-### Profile Page
-![Profile Page](screenshots/profile.png)
-*Halaman profil pengguna*
-
-> **Catatan**: Screenshot dapat diambil dengan menjalankan aplikasi dan menggunakan `flutter screenshot` atau melalui emulator/device. Simpan gambar di folder `screenshots/`.
 
 ## Package yang Digunakan
 
