@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../widgets/forgot/forgot_branding.dart';
 import '../widgets/forgot/forgot_form.dart';
 import '../widgets/forgot/forgot_cards.dart';
@@ -28,10 +29,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 1));
 
-    if (mounted) {
-      setState(() => _isLoading = false);
+    try {
+      await Supabase.instance.client.auth.resetPasswordForEmail(
+        _emailController.text.trim(),
+      );
+
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -42,6 +46,44 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           behavior: SnackBarBehavior.floating,
         ),
       );
+    } on AuthException catch (e) {
+      if (!mounted) return;
+      
+      String userFriendlyMessage = 'Gagal mengirim link reset.';
+      final msg = e.message.toLowerCase();
+      
+      if (msg.contains('rate limit')) {
+        userFriendlyMessage = 'Terlalu banyak permintaan. Silakan tunggu beberapa saat lalu coba lagi.';
+      } else {
+        userFriendlyMessage = e.message;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            userFriendlyMessage,
+            style: GoogleFonts.publicSans(color: Colors.white),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Terjadi kesalahan sistem: ${e.toString()}',
+            style: GoogleFonts.publicSans(color: Colors.white),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 

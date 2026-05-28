@@ -82,6 +82,15 @@ class _SignupLink extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Center(child: RichText(text: TextSpan(
     text: 'Belum memiliki akun? ', style: GoogleFonts.publicSans(fontSize: 16, color: AppColors.onSurfaceVariant),
-    children: [WidgetSpan(child: GestureDetector(onTap: () {}, child: Text('Daftar Sekarang', style: GoogleFonts.publicSans(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.secondary))))],
+    children: [
+      WidgetSpan(
+        child: GestureDetector(
+          onTap: () {
+            Navigator.pushNamed(context, '/register');
+          }, 
+          child: Text('Daftar Sekarang', style: GoogleFonts.publicSans(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.secondary))
+        )
+      )
+    ],
   )));
 }

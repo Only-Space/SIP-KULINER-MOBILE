@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../pages/login_pages.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileLogoutButton extends StatelessWidget {
   const ProfileLogoutButton({super.key});
@@ -22,8 +23,17 @@ class ProfileLogoutButton extends StatelessWidget {
             ),
           );
           if (confirm == true && context.mounted) {
-            Navigator.pushAndRemoveUntil(
-              context, MaterialPageRoute(builder: (_) => const LoginPages()), (route) => false);
+            try {
+              // Sign out secara nyata dari Supabase dan hapus session lokal secara paksa
+              await Supabase.instance.client.auth.signOut(scope: SignOutScope.local);
+            } catch (e) {
+              debugPrint('Logout error: $e');
+            }
+            
+            if (context.mounted) {
+              // Kembali ke AuthWrapper (rute '/') agar state di-reset
+              Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+            }
           }
         },
         style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white,
