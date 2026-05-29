@@ -16,7 +16,6 @@ class DashboardBottomNav extends StatelessWidget {
   static const _navItems = [
     _NavItem(Icons.home_rounded, Icons.home_outlined, 'Beranda'),
     _NavItem(Icons.explore_rounded, Icons.explore_outlined, 'Jelajahi'),
-    _NavItem(Icons.receipt_long_rounded, Icons.receipt_long_outlined, 'Pesanan'),
     _NavItem(Icons.person_rounded, Icons.person_outline_rounded, 'Profil'),
   ];
 

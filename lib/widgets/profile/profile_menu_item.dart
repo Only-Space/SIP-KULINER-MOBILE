@@ -29,11 +29,9 @@ class ProfileMenuSection extends StatelessWidget {
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3))),
       child: Column(children: [
-        ProfileMenuItem(icon: Icons.person_outline, title: 'Informasi Akun', onTap: () {}),
+        ProfileMenuItem(icon: Icons.person_outline, title: 'Informasi Akun', onTap: () => _showComingSoon(context)),
         _divider(),
-        ProfileMenuItem(icon: Icons.history, title: 'Riwayat Pesanan', onTap: () {}),
-        _divider(),
-        ProfileMenuItem(icon: Icons.favorite_border, title: 'Favorit Saya', onTap: () {}),
+        ProfileMenuItem(icon: Icons.favorite_border, title: 'Favorit Saya', onTap: () => _showComingSoon(context)),
         _divider(),
         ProfileMenuItem(
           icon: Icons.map_outlined,
@@ -46,10 +44,22 @@ class ProfileMenuSection extends StatelessWidget {
           },
         ),
         _divider(),
-        ProfileMenuItem(icon: Icons.settings_outlined, title: 'Pengaturan', onTap: () {}),
+        ProfileMenuItem(icon: Icons.settings_outlined, title: 'Pengaturan', onTap: () => _showComingSoon(context)),
         _divider(),
-        ProfileMenuItem(icon: Icons.help_outline, title: 'Bantuan', onTap: () {}),
+        ProfileMenuItem(icon: Icons.help_outline, title: 'Bantuan', onTap: () => _showComingSoon(context)),
       ]));
+  }
+
+  void _showComingSoon(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Fitur ini segera hadir!'),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        backgroundColor: AppColors.primary,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   Widget _divider() => Divider(height: 1, thickness: 1, color: AppColors.outlineVariant.withValues(alpha: 0.2), indent: 60);

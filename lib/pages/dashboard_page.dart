@@ -15,6 +15,8 @@ import '../widgets/food/food_grid_skeleton_sliver.dart';
 import '../widgets/dashboard/dashboard_footer.dart';
 import '../widgets/dashboard/dashboard_bottom_nav.dart';
 import 'login_pages.dart';
+import 'explore_page.dart';
+import 'profile_page.dart';
 
 class DashboardPage extends ConsumerStatefulWidget {
   final String userEmail;
@@ -160,19 +162,31 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
   void _handleProfileTap() => Navigator.pushNamed(context, '/profile');
 
   void _handleNavTap(int index) {
-    if (index == 3) {
-      _handleProfileTap();
-    } else {
-      setState(() => _selectedNavIndex = index);
-    }
+    setState(() => _selectedNavIndex = index);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.surface,
-      body: CustomScrollView(
-        slivers: [
+      body: IndexedStack(
+        index: _selectedNavIndex,
+        children: [
+          _buildHomeView(),
+          const ExplorePage(),
+          const ProfilePage(),
+        ],
+      ),
+      bottomNavigationBar: DashboardBottomNav(
+        selectedIndex: _selectedNavIndex,
+        onChanged: _handleNavTap,
+      ),
+    );
+  }
+
+  Widget _buildHomeView() {
+    return CustomScrollView(
+      slivers: [
           DashboardAppBar(
             userEmail: _displayName,
             onLogout: _handleLogout,
@@ -224,11 +238,6 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
           const SliverToBoxAdapter(child: SizedBox(height: 48)),
           const SliverToBoxAdapter(child: DashboardFooter()),
         ],
-      ),
-      bottomNavigationBar: DashboardBottomNav(
-        selectedIndex: _selectedNavIndex,
-        onChanged: _handleNavTap,
-      ),
-    );
+      );
   }
 }

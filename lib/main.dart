@@ -10,10 +10,10 @@ import 'package:usada_rare/pages/login_pages.dart';
 import 'package:usada_rare/pages/forgot_password_page.dart';
 import 'package:usada_rare/pages/dashboard_page.dart';
 import 'package:usada_rare/pages/profile_page.dart';
-import 'package:usada_rare/pages/auth_wrapper.dart';
 import 'package:usada_rare/pages/onboarding_preferences_page.dart';
 import 'package:usada_rare/pages/register_page.dart';
 import 'package:usada_rare/pages/place_detail_page.dart';
+import 'package:usada_rare/pages/splash_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,7 +63,7 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const AuthWrapper(),
+        '/': (context) => const SplashScreen(),
         '/login': (context) => const LoginPages(),
         '/register': (context) => const RegisterPage(),
         '/forgot-password': (context) => const ForgotPasswordPage(),

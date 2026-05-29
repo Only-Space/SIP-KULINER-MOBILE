@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -12,6 +11,10 @@ import '../data/providers/supabase_provider.dart';
 import '../data/providers/saved_route_provider.dart';
 import '../models/saved_route.dart';
 import 'saved_routes_page.dart';
+
+import '../widgets/route/route_map_view.dart';
+import '../widgets/route/route_info_panel.dart';
+import '../widgets/route/route_waypoint_sheet.dart';
 
 class RouteMapPage extends ConsumerStatefulWidget {
   final double destinationLat;
@@ -56,7 +59,6 @@ class _RouteMapPageState extends ConsumerState<RouteMapPage> {
     }
 
     if (widget.preSavedWaypoints != null && widget.preSavedWaypoints!.isNotEmpty) {
-      // Load preSavedWaypoints, skipping the origin point so we can substitute it with the current location
       for (var wp in widget.preSavedWaypoints!) {
         if (!wp.isOrigin) {
           _destinations.add(RouteWaypoint(wp.name, LatLng(wp.lat, wp.lng)));
@@ -104,7 +106,7 @@ class _RouteMapPageState extends ConsumerState<RouteMapPage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (context) => _AddDestinationSheet(
+      builder: (context) => RouteWaypointSheet(
         currentLat: _currentPosition?.latitude ?? widget.destinationLat,
         currentLng: _currentPosition?.longitude ?? widget.destinationLng,
         onPlaceSelected: (name, lat, lng) {
@@ -210,17 +212,10 @@ class _RouteMapPageState extends ConsumerState<RouteMapPage> {
     }
   }
 
-  String _formatTime(int seconds) {
-    if (seconds < 60) return '$seconds dtk';
-    final mins = seconds ~/ 60;
-    if (mins < 60) return '$mins mnt';
-    final hours = mins ~/ 60;
-    return '$hours j ${mins % 60} m';
-  }
-
-  String _formatDistance(int meters) {
-    if (meters < 1000) return '$meters m';
-    return '${(meters / 1000).toStringAsFixed(1)} km';
+  void _onModeTap(String mode) {
+    if (_travelMode == mode) return;
+    setState(() => _travelMode = mode);
+    _fetchRoute();
   }
 
   @override
@@ -301,47 +296,13 @@ class _RouteMapPageState extends ConsumerState<RouteMapPage> {
       );
     }
 
-    final boundsPoints = <LatLng>[];
-    if (_currentPosition != null) boundsPoints.add(_currentPosition!);
-    boundsPoints.addAll(_destinations.map((d) => d.point));
-    boundsPoints.addAll(routePoints);
-    final bounds = LatLngBounds.fromPoints(boundsPoints);
-    final startPoint = routePoints.isNotEmpty ? routePoints.first : _currentPosition!;
-
     return Stack(children: [
-      // ─── Peta ───────────────────────────────────────────────────
-      FlutterMap(
-        options: MapOptions(
-          initialCameraFit: CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.fromLTRB(40, 100, 40, 300)),
-        ),
-        children: [
-          TileLayer(urlTemplate: 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', userAgentPackageName: 'com.example.sipkuliner'),
-          PolylineLayer(polylines: [
-            Polyline(points: routePoints, strokeWidth: 5.0, color: AppColors.accent, strokeCap: StrokeCap.round),
-          ]),
-          MarkerLayer(markers: [
-            if (_currentPosition != null)
-              Marker(
-                point: startPoint, width: 44, height: 44,
-                child: Container(
-                  decoration: BoxDecoration(color: AppColors.accent, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: AppShadows.medium),
-                  child: const Icon(Icons.my_location_rounded, color: Colors.white, size: 20),
-                ),
-              ),
-            ..._destinations.asMap().entries.map((e) => Marker(
-              point: e.value.point, width: 44, height: 44,
-              child: Container(
-                decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2), boxShadow: AppShadows.medium),
-                child: Center(
-                  child: Text('${e.key + 1}', style: GoogleFonts.plusJakartaSans(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 14)),
-                ),
-              ),
-            )),
-          ]),
-        ],
+      RouteMapView(
+        routePoints: routePoints,
+        currentPosition: _currentPosition,
+        destinations: _destinations,
       ),
 
-      // Loading chip overlay
       if (_isLoading)
         Positioned(
           top: kToolbarHeight + MediaQuery.of(context).padding.top + 8,
@@ -359,278 +320,15 @@ class _RouteMapPageState extends ConsumerState<RouteMapPage> {
           ),
         ),
 
-      // ─── Bottom Sheet Persistent ────────────────────────────────
-      DraggableScrollableSheet(
-        initialChildSize: 0.30,
-        minChildSize: 0.15,
-        maxChildSize: 0.65,
-        snap: true,
-        builder: (context, scrollController) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-            boxShadow: AppShadows.strong,
-          ),
-          child: SingleChildScrollView(
-            controller: scrollController,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                // Drag handle
-                Center(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 12),
-                    width: 40, height: 4,
-                    decoration: BoxDecoration(color: AppColors.outlineVariant, borderRadius: BorderRadius.circular(2)),
-                  ),
-                ),
-
-                // Mode pills
-                Row(children: [
-                  _ModePill(icon: Icons.directions_car_rounded, label: 'Mobil', mode: 'drive', selectedMode: _travelMode, onTap: _onModeTap),
-                  const SizedBox(width: 8),
-                  _ModePill(icon: Icons.two_wheeler_rounded, label: 'Motor', mode: 'motorcycle', selectedMode: _travelMode, onTap: _onModeTap),
-                  const SizedBox(width: 8),
-                  _ModePill(icon: Icons.directions_walk_rounded, label: 'Jalan', mode: 'walk', selectedMode: _travelMode, onTap: _onModeTap),
-                ]),
-
-                const SizedBox(height: 20),
-
-                // Stats row
-                if (_routeData != null) ...[
-                  Row(children: [
-                    _StatItem(icon: Icons.timer_rounded, value: _formatTime(_routeData!.timeSeconds), label: 'Estimasi', color: AppColors.success),
-                    const SizedBox(width: 24),
-                    _StatItem(icon: Icons.straighten_rounded, value: _formatDistance(_routeData!.distanceMeters), label: 'Jarak', color: AppColors.accent),
-                  ]),
-                  const SizedBox(height: 20),
-                ],
-
-                // Daftar tujuan
-                if (_destinations.isNotEmpty) ...[
-                  Text('Tujuan', style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.onSurfaceVariant)),
-                  const SizedBox(height: 8),
-                  ..._destinations.asMap().entries.map((e) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(children: [
-                      Container(
-                        width: 28, height: 28,
-                        decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                        child: Center(child: Text('${e.key + 1}', style: GoogleFonts.plusJakartaSans(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 12))),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(child: Text(e.value.name, style: GoogleFonts.publicSans(fontSize: 13, color: AppColors.onSurface), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                    ]),
-                  )),
-                  const SizedBox(height: 16),
-                ],
-
-                // Action buttons
-                Row(children: [
-                  OutlinedButton(
-                    onPressed: _showAddDestinationModal,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: const BorderSide(color: AppColors.primary),
-                      padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    ),
-                    child: const Icon(Icons.add_location_alt_rounded, size: 20),
-                  ),
-                  const SizedBox(width: 8),
-                  OutlinedButton(
-                    onPressed: _routeData != null ? _saveRoute : null,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: const BorderSide(color: AppColors.primary),
-                      padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    ),
-                    child: const Icon(Icons.bookmark_outline_rounded, size: 20),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _routeData != null ? _startNavigation : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        elevation: 0,
-                      ),
-                      icon: const Icon(Icons.navigation_rounded, size: 18),
-                      label: Text('Mulai', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 14)),
-                    ),
-                  ),
-                ]),
-              ]),
-            ),
-          ),
-        ),
+      RouteInfoPanel(
+        routeData: _routeData,
+        travelMode: _travelMode,
+        onModeTap: _onModeTap,
+        onSaveRoute: _saveRoute,
+        onStartNavigation: _startNavigation,
+        onAddDestination: _showAddDestinationModal,
+        destinations: _destinations,
       ),
     ]);
-  }
-
-  void _onModeTap(String mode) {
-    if (_travelMode == mode) return;
-    setState(() => _travelMode = mode);
-    _fetchRoute();
-  }
-}
-
-// ─── Mode Pill ─────────────────────────────────────────────────────────────
-
-class _ModePill extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String mode;
-  final String selectedMode;
-  final ValueChanged<String> onTap;
-
-  const _ModePill({required this.icon, required this.label, required this.mode, required this.selectedMode, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final isSelected = mode == selectedMode;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => onTap(mode),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeInOut,
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            gradient: isSelected ? AppGradients.chipActiveGradient : null,
-            color: isSelected ? null : AppColors.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(icon, size: 20, color: isSelected ? Colors.white : AppColors.onSurfaceVariant),
-            const SizedBox(height: 4),
-            Text(label, style: GoogleFonts.publicSans(fontSize: 11, fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500, color: isSelected ? Colors.white : AppColors.onSurfaceVariant)),
-          ]),
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Stat Item ─────────────────────────────────────────────────────────────
-
-class _StatItem extends StatelessWidget {
-  final IconData icon;
-  final String value;
-  final String label;
-  final Color color;
-
-  const _StatItem({required this.icon, required this.value, required this.label, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(children: [
-      Container(
-        width: 40, height: 40,
-        decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
-        child: Icon(icon, color: color, size: 20),
-      ),
-      const SizedBox(width: 10),
-      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(value, style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.onSurface, height: 1)),
-        Text(label, style: GoogleFonts.publicSans(fontSize: 11, color: AppColors.onSurfaceVariant)),
-      ]),
-    ]);
-  }
-}
-
-// ─── Add Destination Sheet ─────────────────────────────────────────────────
-
-class _AddDestinationSheet extends StatefulWidget {
-  final double currentLat;
-  final double currentLng;
-  final Function(String name, double lat, double lng) onPlaceSelected;
-
-  const _AddDestinationSheet({required this.currentLat, required this.currentLng, required this.onPlaceSelected});
-
-  @override
-  State<_AddDestinationSheet> createState() => _AddDestinationSheetState();
-}
-
-class _AddDestinationSheetState extends State<_AddDestinationSheet> {
-  final GeoapifyService _geoapifyService = GeoapifyService();
-  final TextEditingController _searchController = TextEditingController();
-  bool _isSearching = false;
-  List<dynamic> _searchResults = [];
-
-  Future<void> _search() async {
-    final query = _searchController.text.trim();
-    if (query.isEmpty) return;
-    setState(() => _isSearching = true);
-    try {
-      final results = await _geoapifyService.searchPlaces(lat: widget.currentLat, lng: widget.currentLng, radiusKm: 50, categoryQuery: query, limit: 10);
-      if (mounted) setState(() => _searchResults = results);
-    } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal mencari: $e')));
-    } finally {
-      if (mounted) setState(() => _isSearching = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.75,
-      decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: Column(children: [
-        Center(child: Container(margin: const EdgeInsets.symmetric(vertical: 12), width: 40, height: 4, decoration: BoxDecoration(color: AppColors.outlineVariant, borderRadius: BorderRadius.circular(2)))),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Tambah Tujuan Berikutnya', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.onSurface)),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _searchController,
-              onSubmitted: (_) => _search(),
-              decoration: InputDecoration(
-                hintText: 'Cari tempat kuliner...',
-                hintStyle: GoogleFonts.publicSans(color: AppColors.outlineVariant),
-                prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary),
-                suffixIcon: IconButton(icon: const Icon(Icons.search_rounded, color: AppColors.primary), onPressed: _search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.outlineVariant)),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              ),
-            ),
-          ]),
-        ),
-        const SizedBox(height: 12),
-        Expanded(
-          child: _isSearching
-              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-              : _searchResults.isEmpty
-                  ? Center(child: Text('Ketik untuk mencari tujuan baru', style: GoogleFonts.publicSans(color: AppColors.outlineVariant)))
-                  : ListView.builder(
-                      itemCount: _searchResults.length,
-                      itemBuilder: (context, index) {
-                        final place = _searchResults[index];
-                        return ListTile(
-                          leading: Container(
-                            width: 40, height: 40,
-                            decoration: BoxDecoration(color: AppColors.surfaceContainerLow, borderRadius: BorderRadius.circular(10)),
-                            child: const Icon(Icons.restaurant_rounded, color: AppColors.primary, size: 20),
-                          ),
-                          title: Text(place.name, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.onSurface)),
-                          subtitle: Text(place.address, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.publicSans(fontSize: 11, color: AppColors.onSurfaceVariant)),
-                          onTap: () {
-                            Navigator.pop(context);
-                            widget.onPlaceSelected(place.name, place.latitude, place.longitude);
-                          },
-                        );
-                      },
-                    ),
-        ),
-      ]),
-    );
   }
 }
