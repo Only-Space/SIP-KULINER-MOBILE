@@ -124,7 +124,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
   Widget _buildSliverHeader() {
     return SliverAppBar(
-      expandedHeight: 280,
+      expandedHeight: 320,
       pinned: true,
       backgroundColor: AppColors.primary,
       foregroundColor: Colors.white,
@@ -168,84 +168,90 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(0, 48, 0, 24),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Avatar
-                      Container(
-                        width: 88,
-                        height: 88,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 3),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              blurRadius: 16,
-                              offset: const Offset(0, 4),
-                            )
-                          ],
-                        ),
-                        child: ClipOval(
-                          child: _avatarUrl != null
-                              ? Image.network(
-                                  _avatarUrl!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) =>
-                                      _buildInitialsAvatar(),
-                                )
-                              : _buildInitialsAvatar(),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      // Nama
-                      Text(
-                        _displayName,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      // Email
-                      Text(
-                        _email,
-                        style: GoogleFonts.publicSans(
-                          fontSize: 13,
-                          color: Colors.white.withValues(alpha: 0.75),
-                        ),
-                      ),
-                      if (_joinedDate.isNotEmpty) ...[
-                        const SizedBox(height: 12),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Avatar
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 5),
+                          width: 96,
+                          height: 96,
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(999),
-                            border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.25)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.calendar_today_rounded,
-                                  size: 11, color: Colors.white),
-                              const SizedBox(width: 5),
-                              Text(
-                                'Bergabung $_joinedDate',
-                                style: GoogleFonts.publicSans(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                ),
-                              ),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 4),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.2),
+                                blurRadius: 16,
+                                offset: const Offset(0, 4),
+                              )
                             ],
                           ),
+                          child: ClipOval(
+                            child: _avatarUrl != null
+                                ? Image.network(
+                                    _avatarUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) =>
+                                        _buildInitialsAvatar(),
+                                  )
+                                : _buildInitialsAvatar(),
+                          ),
                         ),
+                        const SizedBox(height: 16),
+                        // Nama
+                        Text(
+                          _displayName,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        // Email
+                        Text(
+                          _email,
+                          style: GoogleFonts.publicSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white.withValues(alpha: 0.75),
+                          ),
+                        ),
+                        if (_joinedDate.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.25)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.calendar_today_rounded,
+                                    size: 12, color: Colors.white),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Bergabung $_joinedDate',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -263,7 +269,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         child: Text(
           _getInitials(_displayName),
           style: GoogleFonts.plusJakartaSans(
-            fontSize: 32,
+            fontSize: 36,
             fontWeight: FontWeight.w800,
             color: Colors.white,
           ),

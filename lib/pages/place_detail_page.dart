@@ -370,16 +370,43 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                               ),
                             ),
                             const Spacer(),
-                            if (_reviews.isNotEmpty)
-                              Text(
-                                '${_reviews.length} ulasan',
-                                style: GoogleFonts.publicSans(
-                                  fontSize: 12,
-                                  color: AppColors.onSurfaceVariant,
-                                ),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                  builder: (context) => ReviewFormSheet(
+                                    placeId: place.id,
+                                    onReviewSubmitted: () => _fetchReviews(place.id),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryFixed,
+                                foregroundColor: AppColors.primary,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               ),
+                              icon: const Icon(Icons.edit_rounded, size: 14),
+                              label: Text(
+                                'Tulis Ulasan',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                              ),
+                            ),
                           ],
                         ),
+                        if (_reviews.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            '${_reviews.length} ulasan',
+                            style: GoogleFonts.publicSans(
+                              fontSize: 12,
+                              color: AppColors.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 16),
                         if (_isLoadingReviews)
                           const Center(child: CircularProgressIndicator())
@@ -389,7 +416,7 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                           ..._reviews
                               .map((r) => _ReviewCard(review: r))
                               ,
-                        const SizedBox(height: 80),
+                        const SizedBox(height: 140),
                       ],
                     ),
                   ),
@@ -397,27 +424,6 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
               ),
             ),
           ],
-        ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (context) => ReviewFormSheet(
-                placeId: place.id,
-                onReviewSubmitted: () => _fetchReviews(place.id),
-              ),
-            );
-          },
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          elevation: 4,
-          icon: const Icon(Icons.edit_rounded),
-          label: Text(
-            'Tulis Ulasan',
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
-          ),
         ),
       ),
     );
