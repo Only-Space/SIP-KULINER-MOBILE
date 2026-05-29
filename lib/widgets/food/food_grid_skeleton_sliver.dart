@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../models/food_item.dart';
-import '../../data/dummy_data.dart';
-import 'food_card.dart';
+import 'food_card_skeleton.dart';
 
-class FoodGridSliver extends StatelessWidget {
-  final List<FoodItem> items;
+class FoodGridSkeletonSliver extends StatelessWidget {
+  final int itemCount;
 
-  const FoodGridSliver({super.key, this.items = DummyData.foodItems});
+  const FoodGridSkeletonSliver({super.key, this.itemCount = 6});
 
   @override
   Widget build(BuildContext context) {
@@ -14,8 +12,8 @@ class FoodGridSliver extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverGrid(
         delegate: SliverChildBuilderDelegate(
-          (context, index) => FoodCard(item: items[index]),
-          childCount: items.length,
+          (context, index) => const FoodCardSkeleton(),
+          childCount: itemCount,
         ),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: MediaQuery.of(context).size.width > 900

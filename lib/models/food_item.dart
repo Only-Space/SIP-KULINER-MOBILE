@@ -1,5 +1,5 @@
 class FoodItem {
-  final int id;
+  final String id;
   final String name;
   final String merchant;
   final int price;

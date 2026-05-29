@@ -5,6 +5,7 @@ import 'dashboard_page.dart';
 import '../widgets/login/login_background.dart';
 import '../widgets/login/login_responsive_layout.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 
 class LoginPages extends StatefulWidget {
   const LoginPages({super.key});
@@ -61,6 +62,16 @@ class _LoginPagesState extends State<LoginPages> {
               .select()
               .eq('user_id', res.session!.user.id)
               .maybeSingle();
+
+          // Meminta izin lokasi setelah login berhasil
+          try {
+            LocationPermission permission = await Geolocator.checkPermission();
+            if (permission == LocationPermission.denied) {
+              permission = await Geolocator.requestPermission();
+            }
+          } catch (e) {
+            debugPrint('Error requesting location permission: $e');
+          }
               
           if (!mounted) return;
           

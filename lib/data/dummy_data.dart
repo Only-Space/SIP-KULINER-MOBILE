@@ -3,7 +3,7 @@ import '../models/food_item.dart';
 class DummyData {
   static const List<FoodItem> foodItems = [
     FoodItem(
-      id: 1,
+      id: '1',
       name: 'Nasi Campur Ayam Betutu Khas Gilimanuk',
       merchant: 'Warung Men Runtu',
       price: 35000,
@@ -15,7 +15,7 @@ class DummyData {
       tags: ['Halal'],
     ),
     FoodItem(
-      id: 2,
+      id: '2',
       name: 'Sate Lilit Ikan Tenggiri Premium',
       merchant: 'Sate Lilit Pak Doble',
       price: 25000,
@@ -27,7 +27,7 @@ class DummyData {
       tags: ['Local Favorite'],
     ),
     FoodItem(
-      id: 3,
+      id: '3',
       name: 'Paket Jaja Klepon & Laklak Hangat',
       merchant: 'Pasar Sindu Sanur',
       price: 15000,
@@ -39,7 +39,7 @@ class DummyData {
       tags: ['Jajanan Bali'],
     ),
     FoodItem(
-      id: 4,
+      id: '4',
       name: 'Es Daluman Gula Aren Asli',
       merchant: 'Kedai Kopi & Es Bali',
       price: 12000,
@@ -51,7 +51,7 @@ class DummyData {
       tags: [],
     ),
     FoodItem(
-      id: 5,
+      id: '5',
       name: 'Babi Guling Khas Bali Pak Maha',
       merchant: 'Warung Babi Guling Maha',
       price: 45000,
@@ -63,7 +63,7 @@ class DummyData {
       tags: ['Halal'],
     ),
     FoodItem(
-      id: 6,
+      id: '6',
       name: 'Ayam Betutu Asli Gilimanuk',
       merchant: 'Ayam Betutu Bu Lina',
       price: 30000,
@@ -75,7 +75,7 @@ class DummyData {
       tags: ['Local Favorite'],
     ),
     FoodItem(
-      id: 7,
+      id: '7',
       name: 'Nasi Jinggo Spesial',
       merchant: 'Nasi Jinggo Kuta',
       price: 10000,
@@ -87,7 +87,7 @@ class DummyData {
       tags: ['Jajanan Bali'],
     ),
     FoodItem(
-      id: 8,
+      id: '8',
       name: 'Jus Alpukat Segar',
       merchant: 'Jus Buah Segar Denpasar',
       price: 8000,
@@ -99,7 +99,7 @@ class DummyData {
       tags: [],
     ),
     FoodItem(
-      id: 9,
+      id: '9',
       name: 'Sate Plecing Arjuna',
       merchant: 'Sate Plecing Pak Gede',
       price: 20000,
@@ -111,7 +111,7 @@ class DummyData {
       tags: ['Local Favorite'],
     ),
     FoodItem(
-      id: 10,
+      id: '10',
       name: 'Dadar Gulung Rasa Coklat',
       merchant: 'Toko Jajanan Tradisional',
       price: 5000,

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../app_theme.dart';
 
-class CategoryFilters extends StatefulWidget {
+class CategoryFilters extends StatelessWidget {
   final List<String> categories;
   final int selectedIndex;
   final ValueChanged<int> onChanged;
@@ -14,49 +14,59 @@ class CategoryFilters extends StatefulWidget {
     required this.onChanged,
   });
 
-  @override
-  State<CategoryFilters> createState() => _CategoryFiltersState();
-}
+  static const _categoryEmojis = [
+    '🍽️', // Semua Kategori
+    '🌺', // Jajanan Bali
+    '🍚', // Nasi Campur
+    '🍖', // Sate & Panggang
+    '🥤', // Minuman Segar
+    '🛍️', // Oleh-Oleh
+  ];
 
-class _CategoryFiltersState extends State<CategoryFilters> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 42,
+      height: 44,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: widget.categories.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 12),
+        itemCount: categories.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          final isSelected = index == widget.selectedIndex;
+          final isSelected = index == selectedIndex;
+          final emoji = index < _categoryEmojis.length ? _categoryEmojis[index] : '';
           return GestureDetector(
-            onTap: () => widget.onChanged(index),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            onTap: () => onChanged(index),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary : AppColors.surfaceContainerLowest,
-                borderRadius: BorderRadius.circular(9999),
+                gradient: isSelected ? AppGradients.chipActiveGradient : null,
+                color: isSelected ? null : AppColors.surfaceContainerLowest,
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isSelected ? AppColors.primary : AppColors.outlineVariant,
+                  color: isSelected ? AppColors.primary : AppColors.outlineVariant.withValues(alpha: 0.6),
+                  width: isSelected ? 0 : 1,
                 ),
-                boxShadow: isSelected
-                    ? const [
-                        BoxShadow(
-                          color: Color(0x1A000000),
-                          blurRadius: 4,
-                          offset: Offset(0, 2),
-                        ),
-                      ]
-                    : null,
+                boxShadow: isSelected ? AppShadows.soft : null,
               ),
-              child: Text(
-                widget.categories[index],
-                style: GoogleFonts.publicSans(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: isSelected ? Colors.white : AppColors.onSurfaceVariant,
-                  letterSpacing: 0.6,
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (emoji.isNotEmpty) ...[
+                    Text(emoji, style: const TextStyle(fontSize: 13)),
+                    const SizedBox(width: 6),
+                  ],
+                  Text(
+                    categories[index],
+                    style: GoogleFonts.publicSans(
+                      fontSize: 13,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      color: isSelected ? Colors.white : AppColors.onSurfaceVariant,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ],
               ),
             ),
           );

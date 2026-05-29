@@ -12,6 +12,7 @@ import 'package:usada_rare/pages/profile_page.dart';
 import 'package:usada_rare/pages/auth_wrapper.dart';
 import 'package:usada_rare/pages/onboarding_preferences_page.dart';
 import 'package:usada_rare/pages/register_page.dart';
+import 'package:usada_rare/pages/place_detail_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,6 +60,7 @@ class MyApp extends StatelessWidget {
         '/dashboard': (context) => const DashboardPage(),
         '/profile': (context) => const ProfilePage(),
         '/onboarding': (context) => const OnboardingPreferencesPage(),
+        '/detail': (context) => const PlaceDetailPage(),
       },
     );
   }
