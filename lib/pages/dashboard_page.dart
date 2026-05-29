@@ -29,6 +29,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
   int _selectedNavIndex = 0;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  String _displayName = 'Guest';
 
   bool _isLoadingPlaces = true;
   List<FoodItem> _places = [];
@@ -43,7 +44,22 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
   @override
   void initState() {
     super.initState();
+    _loadUserProfile();
     _fetchPlaces();
+  }
+
+  Future<void> _loadUserProfile() async {
+    final user = ref.read(supabaseProvider).auth.currentUser;
+    if (user == null) return;
+    final name = user.userMetadata?['full_name'] as String?
+        ?? user.userMetadata?['name'] as String?
+        ?? user.email?.split('@').first
+        ?? 'Guest';
+    // Capitalize first word
+    final display = name.split(' ').map((w) => w.isNotEmpty
+        ? '${w[0].toUpperCase()}${w.substring(1)}'
+        : '').join(' ');
+    if (mounted) setState(() => _displayName = display);
   }
 
   @override
@@ -155,61 +171,59 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.surface,
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            DashboardAppBar(
-              userEmail: widget.userEmail,
-              onLogout: _handleLogout,
-              onProfileTap: _handleProfileTap,
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 20),
-                    DashboardHero(userEmail: widget.userEmail),
-                    const SizedBox(height: 20),
-                    DashboardSearch(
-                      controller: _searchController,
-                      onSubmitted: (value) {
-                        setState(() {
-                          _searchQuery = value;
-                        });
-                        _fetchPlaces();
-                      },
-                    ),
-                    const SizedBox(height: 24),
-                    CategoryFilters(
-                      categories: _categories,
-                      selectedIndex: _selectedCategory,
-                      onChanged: (i) {
-                        setState(() => _selectedCategory = i);
-                        _fetchPlaces(); // Refresh data saat kategori diubah
-                      },
-                    ),
-                    const SizedBox(height: 32),
-                    SectionHeader(
-                      title: 'Rekomendasi Terdekat',
-                      onSeeMap: () {},
-                    ),
-                  ],
-                ),
+      body: CustomScrollView(
+        slivers: [
+          DashboardAppBar(
+            userEmail: _displayName,
+            onLogout: _handleLogout,
+            onProfileTap: _handleProfileTap,
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 20),
+                  DashboardHero(userEmail: _displayName),
+                  const SizedBox(height: 20),
+                  DashboardSearch(
+                    controller: _searchController,
+                    onSubmitted: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                      });
+                      _fetchPlaces();
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  CategoryFilters(
+                    categories: _categories,
+                    selectedIndex: _selectedCategory,
+                    onChanged: (i) {
+                      setState(() => _selectedCategory = i);
+                      _fetchPlaces(); // Refresh data saat kategori diubah
+                    },
+                  ),
+                  const SizedBox(height: 32),
+                  SectionHeader(
+                    title: 'Rekomendasi Terdekat',
+                    onSeeMap: () {},
+                  ),
+                ],
               ),
             ),
-            _isLoadingPlaces 
-              ? const FoodGridSkeletonSliver(itemCount: 4)
-              : _errorMessage != null
-                ? SliverToBoxAdapter(child: Center(child: Text('Error: $_errorMessage\nCoba muat ulang', textAlign: TextAlign.center)))
-                : _places.isEmpty
-                  ? const SliverToBoxAdapter(child: Center(child: Text('Tidak ada rekomendasi terdekat')))
-                  : FoodGridSliver(items: _places),
-            const SliverToBoxAdapter(child: SizedBox(height: 48)),
-            const SliverToBoxAdapter(child: DashboardFooter()),
-          ],
-        ),
+          ),
+          _isLoadingPlaces 
+            ? const FoodGridSkeletonSliver(itemCount: 4)
+            : _errorMessage != null
+              ? SliverToBoxAdapter(child: Center(child: Text('Error: $_errorMessage\nCoba muat ulang', textAlign: TextAlign.center)))
+              : _places.isEmpty
+                ? const SliverToBoxAdapter(child: Center(child: Text('Tidak ada rekomendasi terdekat')))
+                : FoodGridSliver(items: _places),
+          const SliverToBoxAdapter(child: SizedBox(height: 48)),
+          const SliverToBoxAdapter(child: DashboardFooter()),
+        ],
       ),
       bottomNavigationBar: DashboardBottomNav(
         selectedIndex: _selectedNavIndex,

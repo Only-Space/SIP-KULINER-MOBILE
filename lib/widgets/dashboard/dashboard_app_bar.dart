@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../app_theme.dart';
 
@@ -30,6 +31,11 @@ class DashboardAppBar extends StatelessWidget {
       floating: true,
       toolbarHeight: 64,
       elevation: 0,
+      systemOverlayStyle: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
       flexibleSpace: Container(
         decoration: const BoxDecoration(
           gradient: AppGradients.headerGradient,
