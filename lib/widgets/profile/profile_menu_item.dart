@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../app_theme.dart';
+import '../../pages/saved_routes_page.dart';
 
 class ProfileMenuItem extends StatelessWidget {
   final IconData icon;
@@ -33,6 +34,17 @@ class ProfileMenuSection extends StatelessWidget {
         ProfileMenuItem(icon: Icons.history, title: 'Riwayat Pesanan', onTap: () {}),
         _divider(),
         ProfileMenuItem(icon: Icons.favorite_border, title: 'Favorit Saya', onTap: () {}),
+        _divider(),
+        ProfileMenuItem(
+          icon: Icons.map_outlined,
+          title: 'Rute Tersimpan',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SavedRoutesPage()),
+            );
+          },
+        ),
         _divider(),
         ProfileMenuItem(icon: Icons.settings_outlined, title: 'Pengaturan', onTap: () {}),
         _divider(),

@@ -5,23 +5,32 @@ import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/services/geoapify_service.dart';
 import '../app_theme.dart';
+import '../data/providers/supabase_provider.dart';
+import '../data/providers/saved_route_provider.dart';
+import '../models/saved_route.dart';
+import 'saved_routes_page.dart';
 
-class RouteMapPage extends StatefulWidget {
+class RouteMapPage extends ConsumerStatefulWidget {
   final double destinationLat;
   final double destinationLng;
   final String destinationName;
+  final List<RouteWaypointData>? preSavedWaypoints;
+  final String? preSavedMode;
 
   const RouteMapPage({
     super.key,
     required this.destinationLat,
     required this.destinationLng,
     required this.destinationName,
+    this.preSavedWaypoints,
+    this.preSavedMode,
   });
 
   @override
-  State<RouteMapPage> createState() => _RouteMapPageState();
+  ConsumerState<RouteMapPage> createState() => _RouteMapPageState();
 }
 
 class RouteWaypoint {
@@ -30,7 +39,7 @@ class RouteWaypoint {
   RouteWaypoint(this.name, this.point);
 }
 
-class _RouteMapPageState extends State<RouteMapPage> {
+class _RouteMapPageState extends ConsumerState<RouteMapPage> {
   final GeoapifyService _geoapifyService = GeoapifyService();
   bool _isLoading = true;
   String? _errorMessage;
@@ -42,10 +51,23 @@ class _RouteMapPageState extends State<RouteMapPage> {
   @override
   void initState() {
     super.initState();
-    _destinations.add(RouteWaypoint(
-      widget.destinationName,
-      LatLng(widget.destinationLat, widget.destinationLng),
-    ));
+    if (widget.preSavedMode != null) {
+      _travelMode = widget.preSavedMode!;
+    }
+
+    if (widget.preSavedWaypoints != null && widget.preSavedWaypoints!.isNotEmpty) {
+      // Load preSavedWaypoints, skipping the origin point so we can substitute it with the current location
+      for (var wp in widget.preSavedWaypoints!) {
+        if (!wp.isOrigin) {
+          _destinations.add(RouteWaypoint(wp.name, LatLng(wp.lat, wp.lng)));
+        }
+      }
+    } else {
+      _destinations.add(RouteWaypoint(
+        widget.destinationName,
+        LatLng(widget.destinationLat, widget.destinationLng),
+      ));
+    }
     _fetchRoute();
   }
 
@@ -90,6 +112,83 @@ class _RouteMapPageState extends State<RouteMapPage> {
           _fetchRoute();
         },
       ),
+    );
+  }
+
+  void _saveRoute() {
+    final user = ref.read(supabaseProvider).auth.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Harap login untuk menyimpan rute.')));
+      return;
+    }
+    if (_currentPosition == null || _destinations.isEmpty) return;
+
+    final defaultName = 'Rute ke ${_destinations.last.name}';
+    final nameController = TextEditingController(text: defaultName);
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        bool isSaving = false;
+        return StatefulBuilder(
+          builder: (context, setStateDialog) => AlertDialog(
+            title: const Text('Simpan Rute'),
+            content: TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: 'Nama Rute'),
+            ),
+            actions: [
+              TextButton(onPressed: isSaving ? null : () => Navigator.pop(ctx), child: const Text('Batal')),
+              ElevatedButton(
+                onPressed: isSaving ? null : () async {
+                  setStateDialog(() => isSaving = true);
+                  try {
+                    final waypoints = <RouteWaypointData>[
+                      RouteWaypointData(name: 'Lokasi Saya', lat: _currentPosition!.latitude, lng: _currentPosition!.longitude, isOrigin: true),
+                      ..._destinations.map((d) => RouteWaypointData(name: d.name, lat: d.point.latitude, lng: d.point.longitude)),
+                    ];
+                    
+                    final savedRoute = SavedRoute(
+                      userId: user.id,
+                      name: nameController.text.trim(),
+                      mode: _travelMode,
+                      waypoints: waypoints,
+                      totalDistanceM: _routeData?.distanceMeters,
+                      totalDurationS: _routeData?.timeSeconds,
+                    );
+                    
+                    await ref.read(savedRoutesProvider.notifier).saveRoute(savedRoute);
+                    if (mounted) {
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Rute berhasil disimpan!'),
+                          action: SnackBarAction(
+                            label: 'Lihat Semua',
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const SavedRoutesPage()),
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    setStateDialog(() => isSaving = false);
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menyimpan: $e')));
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+                child: isSaving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('Simpan'),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -328,20 +427,28 @@ class _RouteMapPageState extends State<RouteMapPage> {
 
                 // Action buttons
                 Row(children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _showAddDestinationModal,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.primary,
-                        side: const BorderSide(color: AppColors.primary),
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      ),
-                      icon: const Icon(Icons.add_location_alt_rounded, size: 18),
-                      label: Text('Tambah', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 14)),
+                  OutlinedButton(
+                    onPressed: _showAddDestinationModal,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      side: const BorderSide(color: AppColors.primary),
+                      padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
+                    child: const Icon(Icons.add_location_alt_rounded, size: 20),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
+                  OutlinedButton(
+                    onPressed: _routeData != null ? _saveRoute : null,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      side: const BorderSide(color: AppColors.primary),
+                      padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    child: const Icon(Icons.bookmark_outline_rounded, size: 20),
+                  ),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: _routeData != null ? _startNavigation : null,
