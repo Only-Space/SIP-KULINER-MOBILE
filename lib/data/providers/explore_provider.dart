@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import '../services/geoapify_service.dart';
 import '../../models/geoapify_place.dart';
+import '../../core/errors/app_exception.dart';
 
 class ExploreState {
   final List<GeoapifyPlace> places;
@@ -63,17 +64,17 @@ class ExploreNotifier extends Notifier<ExploreState> {
 
   Future<Position> _getUserLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) throw Exception('Layanan lokasi dinonaktifkan.');
+    if (!serviceEnabled) throw LocationException('Layanan lokasi dinonaktifkan.');
 
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        throw Exception('Izin lokasi ditolak.');
+        throw LocationException('Izin lokasi ditolak.');
       }
     }
     if (permission == LocationPermission.deniedForever) {
-      throw Exception('Izin lokasi ditolak permanen.');
+      throw LocationException('Izin lokasi ditolak permanen. Aktifkan di pengaturan.');
     }
     return await Geolocator.getCurrentPosition();
   }

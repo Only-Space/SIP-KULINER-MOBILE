@@ -27,13 +27,20 @@ Future<void> main() async {
     ),
   );
   
-  // Load .env file
-  await dotenv.load(fileName: ".env");
-  
-  // Initialize Supabase
+  // Load .env file as fallback for local development
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    debugPrint("Info: .env file not found, relying on --dart-define");
+  }
+
+  const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+  const supabaseKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+
+  // Initialize Supabase (try --dart-define first, fallback to dotenv)
   await Supabase.initialize(
-    url: dotenv.env['SUPABASE_URL'] ?? '',
-    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
+    url: supabaseUrl.isNotEmpty ? supabaseUrl : (dotenv.env['SUPABASE_URL'] ?? ''),
+    anonKey: supabaseKey.isNotEmpty ? supabaseKey : (dotenv.env['SUPABASE_ANON_KEY'] ?? ''),
   );
 
   runApp(

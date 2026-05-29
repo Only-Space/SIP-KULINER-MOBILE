@@ -18,11 +18,14 @@ class GeoapifyService {
   final String _baseUrl = 'https://api.geoapify.com/v2/places';
 
   String get _apiKey {
-    final key = dotenv.env['GEOAPIFY_API_KEY'];
-    if (key == null || key.isEmpty) {
-      throw Exception('GEOAPIFY_API_KEY tidak ditemukan di .env');
+    const key = String.fromEnvironment('GEOAPIFY_API_KEY');
+    if (key.isNotEmpty) return key;
+
+    final fallbackKey = dotenv.env['GEOAPIFY_API_KEY'];
+    if (fallbackKey == null || fallbackKey.isEmpty) {
+      throw Exception('GEOAPIFY_API_KEY tidak ditemukan (baik dari --dart-define maupun .env)');
     }
-    return key;
+    return fallbackKey;
   }
 
   Future<List<GeoapifyPlace>> searchPlaces({

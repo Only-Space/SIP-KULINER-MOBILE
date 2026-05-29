@@ -5,6 +5,7 @@ import '../app_theme.dart';
 import '../data/services/geoapify_service.dart';
 import '../models/food_item.dart';
 import '../data/providers/supabase_provider.dart';
+import '../core/utils/location_permission_handler.dart';
 import '../widgets/dashboard/dashboard_app_bar.dart';
 import '../widgets/dashboard/dashboard_hero.dart';
 import '../widgets/dashboard/dashboard_search.dart';
@@ -77,21 +78,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     });
 
     try {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) throw Exception('Layanan lokasi tidak aktif.');
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          throw Exception('Izin lokasi ditolak.');
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        throw Exception('Izin lokasi ditolak secara permanen. Izinkan melalui pengaturan HP.');
-      }
-
+      await LocationPermissionHandler.checkAndRequestPermission(context);
       Position position = await Geolocator.getCurrentPosition();
       
       // Ambil radius dari preferensi jika ada

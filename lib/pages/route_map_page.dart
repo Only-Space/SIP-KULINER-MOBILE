@@ -11,6 +11,7 @@ import '../data/providers/supabase_provider.dart';
 import '../data/providers/saved_route_provider.dart';
 import '../models/saved_route.dart';
 import 'saved_routes_page.dart';
+import '../core/utils/location_permission_handler.dart';
 
 import '../widgets/route/route_map_view.dart';
 import '../widgets/route/route_info_panel.dart';
@@ -76,17 +77,7 @@ class _RouteMapPageState extends ConsumerState<RouteMapPage> {
   Future<void> _fetchRoute() async {
     setState(() { _isLoading = true; _errorMessage = null; });
     try {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) throw Exception('Layanan lokasi dinonaktifkan.');
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) throw Exception('Izin lokasi ditolak.');
-      }
-      if (permission == LocationPermission.deniedForever) {
-        throw Exception('Izin lokasi ditolak permanen. Aktifkan di pengaturan.');
-      }
+      await LocationPermissionHandler.checkAndRequestPermission(context);
 
       final position = await Geolocator.getCurrentPosition();
       final currentLatLng = LatLng(position.latitude, position.longitude);

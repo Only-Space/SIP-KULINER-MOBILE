@@ -1,3 +1,4 @@
+// TODO: implement cart/notification system
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../app_theme.dart';
@@ -7,9 +8,11 @@ class DashboardCartBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.topRight,
-      children: [
+    return Visibility(
+      visible: false,
+      child: Stack(
+        alignment: Alignment.topRight,
+        children: [
         IconButton(
           icon: const Icon(Icons.shopping_cart_outlined, color: AppColors.primary),
           onPressed: () {},
@@ -31,6 +34,7 @@ class DashboardCartBadge extends StatelessWidget {
           ),
         ),
       ],
+    ),
     );
   }
 }
