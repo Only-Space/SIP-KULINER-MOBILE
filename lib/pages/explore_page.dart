@@ -4,6 +4,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../app_theme.dart';
+import '../core/widgets/cached_image.dart';
+import '../core/widgets/skeleton_loader.dart';
 import '../data/providers/explore_provider.dart';
 import '../models/geoapify_place.dart';
 
@@ -39,7 +41,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage> with AutomaticKeepAli
           _buildTopFilters(exploreState),
           if (_selectedPlace != null) _buildBottomSheet(),
           if (exploreState.isLoading && exploreState.places.isEmpty)
-            const Center(child: CircularProgressIndicator()),
+            const Center(child: SkeletonLoader(width: double.infinity, height: double.infinity)),
         ],
       ),
       floatingActionButton: Padding(
@@ -282,12 +284,11 @@ class _ExplorePageState extends ConsumerState<ExplorePage> with AutomaticKeepAli
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  foodItem.imageUrl,
+                child: CachedImage(
+                  imageUrl: foodItem.imageUrl,
                   width: 90,
                   height: 90,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(width: 90, height: 90, color: Colors.grey[200], child: const Icon(Icons.image_not_supported)),
                 ),
               ),
               const SizedBox(width: 16),

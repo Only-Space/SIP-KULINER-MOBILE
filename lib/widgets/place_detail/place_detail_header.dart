@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../app_theme.dart';
+import 'package:usada_rare/app_theme.dart';
+import 'package:usada_rare/core/widgets/cached_image.dart';
 
 class PlaceDetailHeader extends StatelessWidget {
   final String headerImage;
@@ -38,15 +39,9 @@ class PlaceDetailHeader extends StatelessWidget {
         background: Stack(
           fit: StackFit.expand,
           children: [
-            Image.network(
-              headerImage,
+            CachedImage(
+              imageUrl: headerImage,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                color: AppColors.surfaceContainerHigh,
-                child: const Center(
-                  child: Icon(Icons.restaurant, size: 60, color: AppColors.outlineVariant),
-                ),
-              ),
             ),
             // Gradient overlay agar teks di bawah terbaca
             DecoratedBox(

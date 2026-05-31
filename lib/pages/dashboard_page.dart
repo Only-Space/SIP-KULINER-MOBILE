@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geolocator/geolocator.dart';
 import '../app_theme.dart';
-import '../data/services/geoapify_service.dart';
-import '../models/food_item.dart';
 import '../data/providers/supabase_provider.dart';
-import '../core/utils/location_permission_handler.dart';
+import '../features/dashboard/providers/dashboard_places_provider.dart';
 import '../widgets/dashboard/dashboard_app_bar.dart';
 import '../widgets/dashboard/dashboard_hero.dart';
 import '../widgets/dashboard/dashboard_search.dart';
@@ -28,27 +25,17 @@ class DashboardPage extends ConsumerStatefulWidget {
 }
 
 class _DashboardPageState extends ConsumerState<DashboardPage> {
-  int _selectedCategory = 0;
   int _selectedNavIndex = 0;
-  String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
   String _displayName = 'Guest';
-
-  bool _isLoadingPlaces = true;
-  List<FoodItem> _places = [];
-  String? _errorMessage;
-  final GeoapifyService _geoapifyService = GeoapifyService();
-
-  final _categories = const [
-    'Semua Kategori', 'Jajanan Bali', 'Nasi Campur',
-    'Sate & Panggang', 'Minuman Segar', 'Oleh-Oleh',
-  ];
 
   @override
   void initState() {
     super.initState();
     _loadUserProfile();
-    _fetchPlaces();
+    Future.microtask(() {
+      ref.read(dashboardPlacesProvider.notifier).fetchPlaces(context);
+    });
   }
 
   Future<void> _loadUserProfile() async {
@@ -69,60 +56,6 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  Future<void> _fetchPlaces() async {
-    setState(() {
-      _isLoadingPlaces = true;
-      _errorMessage = null;
-    });
-
-    try {
-      await LocationPermissionHandler.checkAndRequestPermission(context);
-      Position position = await Geolocator.getCurrentPosition();
-      
-      // Ambil radius dari preferensi jika ada
-      double radiusKm = 5.0;
-      final session = ref.read(supabaseProvider).auth.currentSession;
-      if (session != null) {
-        final prefs = await ref.read(supabaseProvider).from('preferences').select('max_radius_km').eq('user_id', session.user.id).maybeSingle();
-        if (prefs != null && prefs['max_radius_km'] != null) {
-          radiusKm = (prefs['max_radius_km'] as num).toDouble();
-        }
-      }
-
-      final String query = _categories[_selectedCategory];
-      
-      debugPrint('Mencari tempat dengan query: $query, search: $_searchQuery');
-      final results = await _geoapifyService.searchPlaces(
-        lat: position.latitude,
-        lng: position.longitude,
-        radiusKm: radiusKm,
-        categoryQuery: query,
-        searchQuery: _searchQuery,
-      );
-      debugPrint('Mendapatkan ${results.length} hasil');
-
-      if (mounted) {
-        setState(() {
-          _places = results.map((e) => e.toFoodItem()).toList();
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        debugPrint('Terjadi error saat mencari tempat: $e');
-        setState(() {
-          _errorMessage = e.toString();
-          _isLoadingPlaces = false;
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoadingPlaces = false;
-        });
-      }
-    }
   }
 
   Future<void> _handleLogout() async {
@@ -172,6 +105,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
   }
 
   Widget _buildHomeView() {
+    final placesState = ref.watch(dashboardPlacesProvider);
+    final placesNotifier = ref.read(dashboardPlacesProvider.notifier);
+
     return CustomScrollView(
       slivers: [
           DashboardAppBar(
@@ -191,19 +127,15 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                   DashboardSearch(
                     controller: _searchController,
                     onSubmitted: (value) {
-                      setState(() {
-                        _searchQuery = value;
-                      });
-                      _fetchPlaces();
+                      placesNotifier.setSearchQuery(context, value);
                     },
                   ),
                   const SizedBox(height: 24),
                   CategoryFilters(
-                    categories: _categories,
-                    selectedIndex: _selectedCategory,
+                    categories: placesNotifier.categories,
+                    selectedIndex: placesState.selectedCategory,
                     onChanged: (i) {
-                      setState(() => _selectedCategory = i);
-                      _fetchPlaces(); // Refresh data saat kategori diubah
+                      placesNotifier.setCategory(context, i);
                     },
                   ),
                   const SizedBox(height: 32),
@@ -215,13 +147,13 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
               ),
             ),
           ),
-          _isLoadingPlaces 
+          placesState.isLoading 
             ? const FoodGridSkeletonSliver(itemCount: 4)
-            : _errorMessage != null
-              ? SliverToBoxAdapter(child: Center(child: Text('Error: $_errorMessage\nCoba muat ulang', textAlign: TextAlign.center)))
-              : _places.isEmpty
+            : placesState.error != null
+              ? SliverToBoxAdapter(child: Center(child: Text('Error: ${placesState.error!.message}\nCoba muat ulang', textAlign: TextAlign.center)))
+              : placesState.places.isEmpty
                 ? const SliverToBoxAdapter(child: Center(child: Text('Tidak ada rekomendasi terdekat')))
-                : FoodGridSliver(items: _places),
+                : FoodGridSliver(items: placesState.places),
           const SliverToBoxAdapter(child: SizedBox(height: 48)),
           const SliverToBoxAdapter(child: DashboardFooter()),
         ],

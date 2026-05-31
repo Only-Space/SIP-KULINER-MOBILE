@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../app_theme.dart';
-import '../widgets/login/login_background.dart';
-import '../widgets/login/login_email_field.dart';
-import '../widgets/login/login_password_field.dart';
+import '../../../app_theme.dart';
+import '../../../widgets/login/login_background.dart';
+import '../../../widgets/login/login_email_field.dart';
+import '../../../widgets/login/login_password_field.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});

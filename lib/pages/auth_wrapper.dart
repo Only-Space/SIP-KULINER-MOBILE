@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:usada_rare/data/providers/supabase_provider.dart';
 import 'package:usada_rare/pages/dashboard_page.dart';
 import 'package:usada_rare/pages/login_pages.dart';
-import 'package:usada_rare/pages/onboarding_preferences_page.dart';
+import 'package:usada_rare/features/profile/pages/onboarding_preferences_page.dart';
+import 'package:usada_rare/core/widgets/skeleton_loader.dart';
 
 class AuthWrapper extends ConsumerWidget {
   const AuthWrapper({super.key});
@@ -30,7 +31,7 @@ class AuthWrapper extends ConsumerWidget {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
+                body: Center(child: SkeletonLoader(width: 60, height: 60, borderRadius: 30)),
               );
             }
 
@@ -54,7 +55,7 @@ class AuthWrapper extends ConsumerWidget {
         );
       },
       loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(child: SkeletonLoader(width: 60, height: 60, borderRadius: 30)),
       ),
       error: (e, st) => Scaffold(
         body: Center(child: Text('Error: $e')),

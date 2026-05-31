@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../app_theme.dart';
-import '../../models/review_model.dart';
+import 'package:usada_rare/app_theme.dart';
+import 'package:usada_rare/models/review_model.dart';
+import 'package:usada_rare/core/widgets/cached_image.dart';
 
 class PlaceReviewCard extends StatelessWidget {
   final ReviewModel review;
@@ -88,7 +89,7 @@ class PlaceReviewCard extends StatelessWidget {
                   padding: const EdgeInsets.only(right: 8.0),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: Image.network(review.photos[pIdx],
+                    child: CachedImage(imageUrl: review.photos[pIdx],
                         width: 80, height: 80, fit: BoxFit.cover),
                   ),
                 ),

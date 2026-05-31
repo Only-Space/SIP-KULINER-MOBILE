@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../widgets/forgot/forgot_branding.dart';
-import '../widgets/forgot/forgot_form.dart';
-import '../widgets/forgot/forgot_cards.dart';
-import '../widgets/forgot/forgot_footer.dart';
+import 'package:usada_rare/widgets/forgot/forgot_branding.dart';
+import 'package:usada_rare/widgets/forgot/forgot_form.dart';
+import 'package:usada_rare/widgets/forgot/forgot_cards.dart';
+import 'package:usada_rare/widgets/forgot/forgot_footer.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});

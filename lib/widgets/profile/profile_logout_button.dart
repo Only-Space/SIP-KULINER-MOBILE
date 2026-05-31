@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../pages/login_pages.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileLogoutButton extends StatelessWidget {

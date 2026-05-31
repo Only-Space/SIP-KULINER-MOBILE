@@ -21,6 +21,7 @@ class _OnboardingPreferencesPageState
     'Halal',
     'Fast Food'
   ];
+  
   final List<String> _selectedCategories = [];
   
   final TextEditingController _allergyController = TextEditingController();

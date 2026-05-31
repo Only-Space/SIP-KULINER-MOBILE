@@ -1,8 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../app_theme.dart';
 import '../../models/food_item.dart';
+import 'package:usada_rare/core/widgets/cached_image.dart';
 
 class FoodCardImage extends StatelessWidget {
   final FoodItem item;
@@ -19,41 +19,9 @@ class FoodCardImage extends StatelessWidget {
           ),
           child: AspectRatio(
             aspectRatio: 4 / 3,
-            child: Image.network(
-              item.imageUrl,
+            child: CachedImage(
+              imageUrl: item.imageUrl,
               fit: BoxFit.cover,
-              loadingBuilder: (context, child, progress) => progress == null
-                  ? child
-                  : Container(
-                      color: AppColors.surfaceVariant,
-                      child: Center(
-                        child: SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: AppColors.primary.withValues(alpha: 0.4),
-                          ),
-                        ),
-                      ),
-                    ),
-              errorBuilder: (context, error, stack) => Container(
-                color: AppColors.surfaceContainerLow,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.image_outlined, size: 28, color: AppColors.outlineVariant),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Foto tidak tersedia',
-                      style: GoogleFonts.publicSans(
-                        fontSize: 10,
-                        color: AppColors.outlineVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ),
           ),
         ),

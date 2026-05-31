@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import '../../models/geoapify_place.dart';
+import '../../core/config/place_filters.dart';
 import 'package:latlong2/latlong.dart';
 
 class RouteData {
@@ -39,22 +40,20 @@ class GeoapifyService {
     final radiusMeters = (radiusKm * 1000).toInt();
     
     // Default categories for 'Semua Kategori'
-    String categories = 'catering.restaurant,catering.cafe,catering.fast_food,commercial.food_and_drink';
+    String categories = PlaceFilters.baseCategories;
     
     if (categoryQuery != null && categoryQuery != 'Semua Kategori') {
       final q = categoryQuery.toLowerCase();
-      if (q.contains('minuman')) {
-        categories = 'catering.cafe';
-      } else if (q.contains('oleh-oleh')) {
-        categories = 'commercial.food_and_drink,commercial.supermarket';
-      } else if (q.contains('jajanan')) {
-        categories = 'catering.fast_food,catering.food_court';
-      } else if (q.contains('sate')) {
-        categories = 'catering.restaurant.barbecue,catering.fast_food';
-      } else if (q.contains('nasi campur')) {
-        categories = 'catering.restaurant.asian,catering.restaurant';
-      } else {
-        categories = 'catering.restaurant';
+      bool mapped = false;
+      for (final entry in PlaceFilters.categoryMappings.entries) {
+        if (q.contains(entry.key)) {
+          categories = entry.value;
+          mapped = true;
+          break;
+        }
+      }
+      if (!mapped) {
+        categories = PlaceFilters.defaultCategoryMapping;
       }
     }
     
@@ -81,20 +80,25 @@ class GeoapifyService {
       
       List<GeoapifyPlace> places = features.map((json) => GeoapifyPlace.fromJson(json)).toList();
       
-      // Menyembunyikan "Warung Pak Wongso" dari hasil pencarian
-      places = places.where((p) => !p.name.toLowerCase().contains('wongso')).toList();
+      // Menyembunyikan nama dari blacklist
+      places = places.where((p) {
+        final pName = p.name.toLowerCase();
+        return !PlaceFilters.blacklistedNames.any((b) => pName.contains(b));
+      }).toList();
       
       // Local name filtering to ensure specific Indonesian foods actually show relevant results
       if (categoryQuery != null && categoryQuery != 'Semua Kategori') {
         final q = categoryQuery.toLowerCase();
         List<GeoapifyPlace> filtered = [];
         
-        if (q.contains('nasi campur')) {
-          filtered = places.where((p) => p.name.toLowerCase().contains('nasi') || p.name.toLowerCase().contains('warung')).toList();
-        } else if (q.contains('sate') || q.contains('panggang')) {
-          filtered = places.where((p) => p.name.toLowerCase().contains('sate') || p.name.toLowerCase().contains('panggang') || p.name.toLowerCase().contains('babi')).toList();
-        } else if (q.contains('jajanan')) {
-          filtered = places.where((p) => p.name.toLowerCase().contains('kue') || p.name.toLowerCase().contains('jajan') || p.name.toLowerCase().contains('pasar')).toList();
+        for (final entry in PlaceFilters.localKeywords.entries) {
+          if (q.contains(entry.key)) {
+            filtered = places.where((p) {
+              final pName = p.name.toLowerCase();
+              return entry.value.any((k) => pName.contains(k));
+            }).toList();
+            break;
+          }
         }
         
         // If we found specific matches, use them. Otherwise fallback to the API's categorical results

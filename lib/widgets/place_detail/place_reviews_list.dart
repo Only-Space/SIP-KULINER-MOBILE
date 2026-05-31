@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../app_theme.dart';
-import '../../models/review_model.dart';
+import 'package:usada_rare/models/review_model.dart';
+import 'package:usada_rare/core/widgets/skeleton_loader.dart';
 import '../reviews/review_form_sheet.dart';
 import 'place_review_card.dart';
 
@@ -78,9 +79,16 @@ class PlaceReviewsList extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 16),
-          if (isLoadingReviews)
-            const Center(child: CircularProgressIndicator())
-          else if (reviews.isEmpty)
+         if (isLoadingReviews)
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: List.generate(3, (index) => const Padding(
+                padding: EdgeInsets.only(bottom: 12.0),
+                child: SkeletonLoader(width: double.infinity, height: 100, borderRadius: 16),
+              )),
+            ),
+          )else if (reviews.isEmpty)
             _buildEmptyReview()
           else
             ...reviews.map((r) => PlaceReviewCard(review: r)),
