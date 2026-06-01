@@ -12,6 +12,7 @@ import '../widgets/food/food_grid_sliver.dart';
 import '../widgets/food/food_grid_skeleton_sliver.dart';
 import '../widgets/dashboard/dashboard_footer.dart';
 import '../widgets/dashboard/dashboard_bottom_nav.dart';
+import '../features/dashboard/widgets/ai_recommendation_section.dart';
 import 'login_pages.dart';
 import 'explore_page.dart';
 import 'profile_page.dart';
@@ -138,7 +139,21 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                       placesNotifier.setCategory(context, i);
                     },
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
+          // ── AI Recommendation Section ──────────────────────────────
+          const SliverToBoxAdapter(child: AiRecommendationSection()),
+          // ── Nearby section header ──────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 8),
                   SectionHeader(
                     title: 'Rekomendasi Terdekat',
                     onSeeMap: () {},

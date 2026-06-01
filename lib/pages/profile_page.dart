@@ -131,6 +131,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
       ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.settings),
+          onPressed: () {
+            Navigator.pushNamed(context, '/settings');
+          },
+        ),
+      ],
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: const BoxDecoration(

@@ -13,6 +13,7 @@ import 'package:usada_rare/pages/profile_page.dart';
 import 'package:usada_rare/features/profile/pages/onboarding_preferences_page.dart';
 import 'package:usada_rare/features/profile/pages/register_page.dart';
 import 'package:usada_rare/features/place_detail/pages/place_detail_page.dart';
+import 'package:usada_rare/features/profile/pages/settings_page.dart';
 import 'package:usada_rare/pages/splash_screen.dart';
 
 Future<void> main() async {
@@ -78,6 +79,7 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => const ProfilePage(),
         '/onboarding': (context) => const OnboardingPreferencesPage(),
         '/detail': (context) => const PlaceDetailPage(),
+        '/settings': (context) => const SettingsPage(),
       },
     );
   }

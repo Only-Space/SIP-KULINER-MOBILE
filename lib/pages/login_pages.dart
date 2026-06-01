@@ -5,6 +5,7 @@ import '../widgets/login/login_background.dart';
 import '../widgets/login/login_responsive_layout.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:usada_rare/features/onboarding/widgets/preferences_onboarding_sheet.dart';
 
 class LoginPages extends StatefulWidget {
   const LoginPages({super.key});
@@ -75,7 +76,13 @@ class _LoginPagesState extends State<LoginPages> {
           if (!mounted) return;
           
           if (prefs == null) {
-            Navigator.pushReplacementNamed(context, '/onboarding');
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              isDismissible: false,
+              enableDrag: false,
+              builder: (context) => const PreferencesOnboardingSheet(),
+            );
           } else {
             Navigator.pushReplacementNamed(context, '/dashboard');
           }

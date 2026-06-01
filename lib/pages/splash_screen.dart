@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:usada_rare/features/onboarding/widgets/preferences_onboarding_sheet.dart';
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -47,10 +48,30 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     });
   }
 
-  void _checkAuthAndNavigate() {
+  void _checkAuthAndNavigate() async {
     final session = Supabase.instance.client.auth.currentSession;
     if (session != null) {
-      Navigator.pushReplacementNamed(context, '/dashboard');
+      try {
+        final prefs = await Supabase.instance.client
+            .from('preferences')
+            .select()
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+
+        if (prefs == null && mounted) {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            isDismissible: false,
+            enableDrag: false,
+            builder: (context) => const PreferencesOnboardingSheet(),
+          );
+        } else if (mounted) {
+          Navigator.pushReplacementNamed(context, '/dashboard');
+        }
+      } catch (e) {
+        if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
+      }
     } else {
       Navigator.pushReplacementNamed(context, '/login');
     }
