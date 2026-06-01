@@ -27,9 +27,9 @@ class ReviewModel {
     final photosList = json['review_photos'] as List<dynamic>? ?? [];
     
     return ReviewModel(
-      id: json['id'],
-      userId: json['user_id'],
-      placeId: json['place_id'],
+      id: json['id'].toString(),
+      userId: json['user_id'].toString(),
+      placeId: json['place_id'].toString(),
       rating: (json['rating'] as num).toDouble(),
       comment: json['comment'],
       createdAt: DateTime.parse(json['created_at']),

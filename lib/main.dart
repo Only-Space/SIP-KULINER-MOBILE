@@ -14,6 +14,7 @@ import 'package:usada_rare/features/profile/pages/onboarding_preferences_page.da
 import 'package:usada_rare/features/profile/pages/register_page.dart';
 import 'package:usada_rare/features/place_detail/pages/place_detail_page.dart';
 import 'package:usada_rare/features/profile/pages/settings_page.dart';
+import 'package:usada_rare/features/meal_plan/pages/meal_plan_page.dart';
 import 'package:usada_rare/pages/splash_screen.dart';
 
 Future<void> main() async {
@@ -80,6 +81,7 @@ class MyApp extends StatelessWidget {
         '/onboarding': (context) => const OnboardingPreferencesPage(),
         '/detail': (context) => const PlaceDetailPage(),
         '/settings': (context) => const SettingsPage(),
+        '/meal-plan': (context) => const MealPlanPage(),
       },
     );
   }

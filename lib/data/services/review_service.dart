@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/review_model.dart';
 
@@ -7,6 +8,7 @@ class ReviewService {
 
   /// Mengambil semua ulasan untuk suatu tempat
   Future<List<ReviewModel>> getReviews(String placeId) async {
+    debugPrint('[REVIEW] Fetching dengan place_id: $placeId');
     final response = await _supabase
         .from('reviews')
         .select('*, profiles(name, avatar_url), review_photos(storage_url)')
@@ -25,6 +27,8 @@ class ReviewService {
   }) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) throw Exception('Anda harus login untuk memberikan ulasan.');
+
+    debugPrint('[REVIEW] Insert dengan place_id: $placeId');
 
     // 1. Simpan Ulasan ke tabel reviews
     final reviewResponse = await _supabase.from('reviews').insert({

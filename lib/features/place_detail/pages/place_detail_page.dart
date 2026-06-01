@@ -68,6 +68,8 @@ class PlaceDetailPage extends ConsumerWidget {
         final headerImage = place.toFoodItem().imageUrl;
         final reviews = reviewsAsyncValue.value ?? [];
         final isLoadingReviews = reviewsAsyncValue.isLoading;
+        final hasReviewError = reviewsAsyncValue.hasError;
+        final reviewError = reviewsAsyncValue.error;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
@@ -94,12 +96,18 @@ class PlaceDetailPage extends ConsumerWidget {
                     onRouteTap: () => _openRouteMap(context, place.latitude, place.longitude, place.name),
                   ),
                   const SizedBox(height: 8),
-                  PlaceReviewsList(
-                    placeId: place.id,
-                    reviews: reviews,
-                    isLoadingReviews: isLoadingReviews,
-                    onReviewSubmitted: () => ref.refresh(placeReviewsProvider(fsqId)),
-                  ),
+                  if (hasReviewError)
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Text('Gagal memuat ulasan: $reviewError', style: const TextStyle(color: Colors.red)),
+                    )
+                  else
+                    PlaceReviewsList(
+                      placeId: fsqId,
+                      reviews: reviews,
+                      isLoadingReviews: isLoadingReviews,
+                      onReviewSubmitted: () => ref.invalidate(placeReviewsProvider(fsqId)),
+                    ),
                 ],
               ),
             ),

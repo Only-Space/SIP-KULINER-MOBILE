@@ -48,6 +48,7 @@ class _ReviewFormSheetState extends State<ReviewFormSheet> {
     setState(() => _isSubmitting = true);
 
     try {
+      debugPrint('[REVIEW] Insert dengan place_id: ${widget.placeId}');
       await _reviewService.submitReview(
         placeId: widget.placeId,
         rating: _rating,

@@ -5,7 +5,7 @@ import 'package:usada_rare/data/providers/supabase_provider.dart';
 import 'package:usada_rare/features/dashboard/providers/preferences_provider.dart';
 import 'package:usada_rare/features/dashboard/providers/ai_recommendation_provider.dart';
 import 'package:usada_rare/models/user_preferences.dart';
-import 'package:usada_rare/features/profile/pages/settings_page.dart'; // Only for dummyMealPlanProvider right now
+import 'package:usada_rare/features/meal_plan/providers/meal_plan_provider.dart';
 
 class PreferencesEditSheet extends ConsumerStatefulWidget {
   final UserPreferences initialPrefs;
@@ -98,8 +98,7 @@ class _PreferencesEditSheetState extends ConsumerState<PreferencesEditSheet> {
 
       if (oldBudget != newBudget) {
         // HANYA jika daily_budget berubah: invalidate mealPlanProvider
-        // ref.invalidate(mealPlanProvider); 
-        ref.read(dummyMealPlanProvider.notifier).regenerate(); // dummy
+        ref.read(mealPlanProvider.notifier).regenerate();
       }
 
       if (mounted) {

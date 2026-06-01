@@ -34,6 +34,14 @@ class ProfileMenuSection extends StatelessWidget {
         ProfileMenuItem(icon: Icons.favorite_border, title: 'Favorit Saya', onTap: () => _showComingSoon(context)),
         _divider(),
         ProfileMenuItem(
+          icon: Icons.restaurant_menu,
+          title: 'Rencana Makan Bulanan',
+          onTap: () {
+            Navigator.pushNamed(context, '/meal-plan');
+          },
+        ),
+        _divider(),
+        ProfileMenuItem(
           icon: Icons.map_outlined,
           title: 'Rute Tersimpan',
           onTap: () {
@@ -44,7 +52,21 @@ class ProfileMenuSection extends StatelessWidget {
           },
         ),
         _divider(),
-        ProfileMenuItem(icon: Icons.settings_outlined, title: 'Pengaturan', onTap: () => _showComingSoon(context)),
+        ProfileMenuItem(
+          icon: Icons.tune,
+          title: 'Preferensi Makanan',
+          onTap: () {
+            Navigator.pushNamed(context, '/settings');
+          },
+        ),
+        _divider(),
+        ProfileMenuItem(
+          icon: Icons.settings_outlined,
+          title: 'Pengaturan',
+          onTap: () {
+            Navigator.pushNamed(context, '/settings');
+          },
+        ),
         _divider(),
         ProfileMenuItem(icon: Icons.help_outline, title: 'Bantuan', onTap: () => _showComingSoon(context)),
       ]));

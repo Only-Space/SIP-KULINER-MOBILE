@@ -4,16 +4,7 @@ import 'package:usada_rare/app_theme.dart';
 import 'package:usada_rare/data/providers/supabase_provider.dart';
 import 'package:usada_rare/features/dashboard/providers/preferences_provider.dart';
 import 'package:usada_rare/features/profile/widgets/preferences_edit_sheet.dart';
-
-// Dummy provider to satisfy the compilation and logic for the missing mealPlanProvider
-// TODO: Replace with the actual mealPlanProvider when implemented
-final dummyMealPlanProvider = NotifierProvider<DummyMealPlanNotifier, bool>(() => DummyMealPlanNotifier());
-
-class DummyMealPlanNotifier extends Notifier<bool> {
-  @override
-  bool build() => false;
-  void regenerate() => state = true;
-}
+import 'package:usada_rare/features/meal_plan/providers/meal_plan_provider.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -21,7 +12,8 @@ class SettingsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final prefsAsync = ref.watch(preferencesProvider);
-    final isMealPlanGenerated = ref.watch(dummyMealPlanProvider); // Replace with actual mealPlan check
+    final mealPlanAsync = ref.watch(mealPlanProvider);
+    final isMealPlanGenerated = mealPlanAsync.hasValue && mealPlanAsync.value != null;
 
     return Scaffold(
       appBar: AppBar(
@@ -79,7 +71,7 @@ class SettingsPage extends ConsumerWidget {
                   title: 'Reset Rencana Makan?',
                   content: 'Tindakan ini akan membuat ulang menu Anda.',
                 onConfirm: () {
-                  ref.read(dummyMealPlanProvider.notifier).regenerate(); // Replace with actual
+                  ref.read(mealPlanProvider.notifier).regenerate();
                 },
                 );
               },
