@@ -5,9 +5,9 @@ import 'package:latlong2/latlong.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../app_theme.dart';
 import '../core/widgets/cached_image.dart';
-import '../core/widgets/skeleton_loader.dart';
 import '../data/providers/explore_provider.dart';
 import '../models/geoapify_place.dart';
+import '../features/explore/widgets/place_card_skeleton.dart';
 
 class ExplorePage extends ConsumerStatefulWidget {
   const ExplorePage({super.key});
@@ -41,7 +41,11 @@ class _ExplorePageState extends ConsumerState<ExplorePage> with AutomaticKeepAli
           _buildTopFilters(exploreState),
           if (_selectedPlace != null) _buildBottomSheet(),
           if (exploreState.isLoading && exploreState.places.isEmpty)
-            const Center(child: SkeletonLoader(width: double.infinity, height: double.infinity)),
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.only(top: 120, left: 16, right: 16),
+              child: const PlaceCardSkeleton(isList: true),
+            ),
         ],
       ),
       floatingActionButton: Padding(

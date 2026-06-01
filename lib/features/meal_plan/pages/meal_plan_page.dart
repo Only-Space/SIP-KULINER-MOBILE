@@ -5,136 +5,101 @@ import 'package:usada_rare/app_theme.dart';
 import 'package:usada_rare/features/meal_plan/providers/meal_plan_provider.dart';
 import 'package:usada_rare/core/utils/format_utils.dart';
 import 'package:usada_rare/models/meal_plan.dart';
+import 'package:usada_rare/features/meal_plan/widgets/meal_plan_summary_card.dart';
+import 'package:usada_rare/features/meal_plan/widgets/meal_plan_skeleton.dart';
 
-class MealPlanPage extends ConsumerWidget {
+class MealPlanPage extends ConsumerStatefulWidget {
   const MealPlanPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MealPlanPage> createState() => _MealPlanPageState();
+}
+
+class _MealPlanPageState extends ConsumerState<MealPlanPage> {
+  @override
+  Widget build(BuildContext context) {
     final mealPlanState = ref.watch(mealPlanProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Rencana Makan 30 Hari'),
+        title: const Text('Rencana Makan'),
         backgroundColor: AppColors.surface,
         elevation: 0,
+        foregroundColor: AppColors.primary,
+        centerTitle: true,
       ),
       backgroundColor: AppColors.surface,
       body: mealPlanState.when(
         data: (plan) {
           if (plan == null) {
-            return const Center(child: Text('Tidak ada rencana makan.'));
+            return _buildEmptyState(context, ref);
           }
 
-          final progress = plan.totalBudget > 0 ? plan.totalEstimatedCost / plan.totalBudget : 0.0;
           final dailyBudget = plan.totalBudget ~/ 30;
 
           return Column(
             children: [
-              // Summary card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                color: const Color(0xFFD6E3FF),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Ringkasan Keuangan',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF001B3E),
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Total budget:', style: GoogleFonts.publicSans(color: const Color(0xFF001B3E))),
-                        Text('Rp ${plan.totalBudget.toFormattedString()}', style: GoogleFonts.publicSans(fontWeight: FontWeight.bold, color: const Color(0xFF001B3E))),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Estimasi pengeluaran:', style: GoogleFonts.publicSans(color: const Color(0xFF001B3E))),
-                        Text('Rp ${plan.totalEstimatedCost.toFormattedString()}', style: GoogleFonts.publicSans(fontWeight: FontWeight.bold, color: const Color(0xFF001B3E))),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Estimasi hemat:', style: GoogleFonts.publicSans(color: const Color(0xFF001B3E))),
-                        Text('Rp ${plan.estimatedSavings.toFormattedString()}', style: GoogleFonts.publicSans(fontWeight: FontWeight.bold, color: Colors.green[700])),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: LinearProgressIndicator(
-                        value: progress.clamp(0.0, 1.0),
-                        backgroundColor: Colors.white,
-                        valueColor: AlwaysStoppedAnimation<Color>(progress > 1.0 ? Colors.red : AppColors.primary),
-                        minHeight: 8,
-                      ),
-                    ),
-                  ],
-                ),
+              const SizedBox(height: 16),
+              MealPlanSummaryCard(
+                totalBudget: plan.totalBudget,
+                totalCost: plan.totalEstimatedCost,
               ),
+              const SizedBox(height: 16),
               Expanded(
                 child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.only(bottom: 24, top: 8),
                   itemCount: plan.days.length,
                   itemBuilder: (context, index) {
                     final day = plan.days[index];
                     final isOverBudget = day.totalDailyCost > dailyBudget;
 
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: AppShadows.card,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                            child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'Hari ke-${day.day}',
+                                  'Hari ${day.day}',
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w500,
                                     fontSize: 16,
+                                    color: AppColors.primary,
                                   ),
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: isOverBudget ? Colors.red[50] : Colors.green[50],
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    'Rp ${day.totalDailyCost.toFormattedString()}',
-                                    style: GoogleFonts.publicSans(
-                                      color: isOverBudget ? Colors.red[700] : Colors.green[700],
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                Text(
+                                  'Rp ${day.totalDailyCost.toFormattedString()}',
+                                  style: GoogleFonts.publicSans(
+                                    color: isOverBudget ? Colors.red[700] : Colors.green[700],
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ],
                             ),
-                            const Divider(height: 24),
-                            _buildMealSection(context, 'Sarapan', Icons.wb_sunny, day.breakfast),
-                            const Divider(height: 24, thickness: 0.5),
-                            _buildMealSection(context, 'Makan Siang', Icons.wb_cloudy, day.lunch),
-                            const Divider(height: 24, thickness: 0.5),
-                            _buildMealSection(context, 'Makan Malam', Icons.nights_stay, day.dinner),
-                          ],
-                        ),
+                          ),
+                          const Divider(height: 1, thickness: 1, color: AppColors.surfaceContainerHigh),
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              children: [
+                                _buildMealSection(context, 'Sarapan', Icons.wb_sunny_outlined, AppColors.amber, day.breakfast),
+                                const Divider(height: 24, thickness: 1, color: AppColors.surfaceContainerHigh),
+                                _buildMealSection(context, 'Makan Siang', Icons.wb_cloudy_outlined, Colors.lightBlue, day.lunch),
+                                const Divider(height: 24, thickness: 1, color: AppColors.surfaceContainerHigh),
+                                _buildMealSection(context, 'Makan Malam', Icons.nights_stay_outlined, AppColors.primary, day.dinner),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   },
@@ -143,50 +108,8 @@ class MealPlanPage extends ConsumerWidget {
             ],
           );
         },
-        loading: () {
-          final loadingMsg = ref.watch(mealPlanLoadingMessageProvider);
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const CircularProgressIndicator(color: AppColors.primary),
-                const SizedBox(height: 24),
-                Text(
-                  loadingMsg,
-                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 16),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          );
-        },
-        error: (err, stack) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, size: 64, color: Colors.redAccent),
-                const SizedBox(height: 16),
-                Text(
-                  'Terjadi kesalahan saat menyusun menu',
-                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  err.toString(),
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.publicSans(color: Colors.grey, fontSize: 13),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () => ref.read(mealPlanProvider.notifier).regenerate(),
-                  child: const Text('Coba lagi'),
-                ),
-              ],
-            ),
-          ),
-        ),
+        loading: () => _buildLoadingState(ref),
+        error: (err, stack) => _buildErrorState(context, ref, err),
       ),
       floatingActionButton: mealPlanState.hasValue && mealPlanState.value != null
           ? FloatingActionButton(
@@ -201,7 +124,98 @@ class MealPlanPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildMealSection(BuildContext context, String title, IconData icon, MealItem item) {
+  Widget _buildEmptyState(BuildContext context, WidgetRef ref) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.soup_kitchen_outlined, size: 64, color: AppColors.amber),
+          const SizedBox(height: 16),
+          Text(
+            'Belum ada rencana makan',
+            style: GoogleFonts.plusJakartaSans(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Tap tombol refresh untuk mulai',
+            style: GoogleFonts.publicSans(
+              color: AppColors.onSurfaceVariant,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () => ref.read(mealPlanProvider.notifier).regenerate(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Buat Rencana Makan'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingState(WidgetRef ref) {
+    return const MealPlanSkeleton();
+  }
+
+  Widget _buildErrorState(BuildContext context, WidgetRef ref, Object err) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.soup_kitchen_outlined, size: 64, color: AppColors.amber),
+          const SizedBox(height: 16),
+          Text(
+            'Belum ada rencana makan',
+            style: GoogleFonts.plusJakartaSans(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Tap tombol refresh untuk mulai',
+            style: GoogleFonts.publicSans(
+              color: AppColors.onSurfaceVariant,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () => ref.read(mealPlanProvider.notifier).regenerate(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Buat Rencana Makan'),
+          ),
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              'Error Detail: ${err.toString()}',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.publicSans(color: Colors.grey, fontSize: 11),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMealSection(BuildContext context, String title, IconData icon, Color iconColor, MealItem item) {
     return InkWell(
       onTap: item.placeId != null
           ? () {
@@ -210,78 +224,52 @@ class MealPlanPage extends ConsumerWidget {
           : null,
       borderRadius: BorderRadius.circular(8),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, size: 28, color: AppColors.primary.withValues(alpha: 0.8)),
+            Icon(icon, size: 24, color: iconColor),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          item.foodName,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Rp ${item.price.toFormattedString()}',
-                        style: GoogleFonts.publicSans(
-                          color: Colors.amber[800],
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
                   Text(
-                    '${item.warungName} • ${item.warungArea}',
-                    style: GoogleFonts.publicSans(
-                      color: Colors.grey[600],
-                      fontSize: 13,
+                    item.foodName,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                      fontSize: 14,
                     ),
                   ),
-                  if (item.tips.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(Icons.info_outline, size: 14, color: Colors.blue[300]),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            item.tips,
-                            style: GoogleFonts.publicSans(
-                              fontStyle: FontStyle.italic,
-                              color: Colors.blue[400],
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ],
+                  const SizedBox(height: 2),
+                  Text(
+                    item.warungName,
+                    style: GoogleFonts.publicSans(
+                      color: Colors.grey.shade600,
+                      fontSize: 12,
                     ),
-                  ],
+                  ),
+                  Text(
+                    item.warungArea,
+                    style: GoogleFonts.publicSans(
+                      color: Colors.grey.shade400,
+                      fontStyle: FontStyle.italic,
+                      fontSize: 11,
+                    ),
+                  ),
                 ],
               ),
             ),
-            if (item.placeId != null) ...[
-              const SizedBox(width: 8),
-              Tooltip(
-                message: 'Lihat detail & rute',
-                child: Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey[400]),
+            const SizedBox(width: 8),
+            Text(
+              'Rp ${item.price.toFormattedString()}',
+              style: GoogleFonts.publicSans(
+                color: AppColors.amber,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
               ),
-            ],
+            ),
           ],
         ),
       ),

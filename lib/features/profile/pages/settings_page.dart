@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:usada_rare/app_theme.dart';
 import 'package:usada_rare/data/providers/supabase_provider.dart';
 import 'package:usada_rare/features/dashboard/providers/preferences_provider.dart';
@@ -14,107 +16,258 @@ class SettingsPage extends ConsumerWidget {
     final prefsAsync = ref.watch(preferencesProvider);
     final mealPlanAsync = ref.watch(mealPlanProvider);
     final isMealPlanGenerated = mealPlanAsync.hasValue && mealPlanAsync.value != null;
+    final supabase = ref.watch(supabaseProvider);
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF0F3FF),
       appBar: AppBar(
-        title: const Text('Pengaturan'),
-        backgroundColor: AppColors.surface,
+        title: Text(
+          'Pengaturan',
+          style: GoogleFonts.plusJakartaSans(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color(0xFF002045),
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
-      backgroundColor: AppColors.surface,
-      body: ListView(
-        children: [
-          // ── Preferensi Makan ──────────────────────────────────────────────────
-          _buildSectionHeader('Preferensi Makan'),
-          ListTile(
-            title: const Text('Ubah preferensi makanan'),
-            subtitle: const Text('Makanan favorit, pantangan, budget harian'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              prefsAsync.whenData((prefs) {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (context) => PreferencesEditSheet(initialPrefs: prefs),
-                );
-              });
-            },
-          ),
-          const Divider(height: 1),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── HEADER PROFILE CARD ──────────────────────────────────────────────
+            Container(
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF002045), Color(0xFF1A3D6B)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  const CircleAvatar(
+                    radius: 28,
+                    backgroundColor: Color(0xFFFFB55C),
+                    child: Icon(Icons.person, color: Colors.white, size: 32),
+                  ),
+                  const SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        supabase.auth.currentUser?.email ?? 'Pengguna',
+                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'SIPKULINER Member',
+                        style: TextStyle(color: Colors.white60, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
 
-          // ── Rencana Makan ─────────────────────────────────────────────────────
-          _buildSectionHeader('Rencana Makan'),
-          ListTile(
-            title: const Text('Budget bulanan'),
-            subtitle: prefsAsync.when(
-              data: (prefs) => Text(
-                  'Rp ${prefs.dailyBudget.toString().replaceAllMapped(RegExp(r'\\B(?=(\\d{3})+(?!\\d))'), (match) => '.')} / hari'),
-              loading: () => const Text('Memuat...'),
-              error: (_, __) => const Text('Gagal memuat'),
+            // ── PREFERENSI MAKAN SECTION ─────────────────────────────────────────
+            _buildSectionLabel('Preferensi Makan'),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, 2))
+                ],
+              ),
+              child: Column(
+                children: [
+                  _buildListTile(
+                    title: 'Ubah preferensi makanan',
+                    subtitle: 'Makanan favorit, pantangan, budget harian',
+                    icon: Icons.restaurant_menu,
+                    iconColor: const Color(0xFFFFB55C),
+                    iconBgColor: const Color(0xFFFFB55C).withValues(alpha: 0.15),
+                    trailing: Icon(Icons.chevron_right, color: Colors.grey.shade400),
+                    onTap: () {
+                      prefsAsync.whenData((prefs) {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent, // Untuk modal rounded
+                          builder: (context) => PreferencesEditSheet(initialPrefs: prefs),
+                        );
+                      });
+                    },
+                  ),
+                ],
+              ),
             ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // Dialog ubah budget (simpel)
-              prefsAsync.whenData((prefs) {
-                _showBudgetDialog(context, ref, prefs.dailyBudget);
-              });
-            },
-          ),
-          if (isMealPlanGenerated) // Sembunyikan tile jika belum di-generate
-            ListTile(
-              title: const Text('Reset rencana makan'),
-              subtitle: const Text('Buat ulang menu 30 hari berdasarkan preferensi terbaru'),
-              trailing: const Icon(Icons.refresh),
-              onTap: () {
-                _showConfirmDialog(
-                  context: context,
-                  title: 'Reset Rencana Makan?',
-                  content: 'Tindakan ini akan membuat ulang menu Anda.',
-                onConfirm: () {
-                  ref.read(mealPlanProvider.notifier).regenerate();
-                },
-                );
-              },
-            ),
-          const Divider(height: 1),
 
-          // ── Akun ─────────────────────────────────────────────────────────────
-          _buildSectionHeader('Akun'),
-          ListTile(
-            title: const Text(
-              'Keluar',
-              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            // ── RENCANA MAKAN SECTION ────────────────────────────────────────────
+            _buildSectionLabel('Rencana Makan'),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, 2))
+                ],
+              ),
+              child: Column(
+                children: [
+                  _buildListTile(
+                    title: 'Budget bulanan',
+                    subtitleWidget: prefsAsync.when(
+                      data: (prefs) {
+                        final formatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+                        return Text(
+                          '${formatter.format(prefs.dailyBudget)} / hari',
+                          style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                        );
+                      },
+                      loading: () => Text('Memuat...', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                      error: (_, __) => Text('Gagal memuat', style: TextStyle(color: Colors.red.shade400, fontSize: 12)),
+                    ),
+                    icon: Icons.wallet,
+                    iconColor: const Color(0xFFFFB55C),
+                    iconBgColor: const Color(0xFFFFB55C).withValues(alpha: 0.15),
+                    trailing: Icon(Icons.chevron_right, color: Colors.grey.shade400),
+                    onTap: () {
+                      prefsAsync.whenData((prefs) {
+                        _showBudgetDialog(context, ref, prefs.dailyBudget);
+                      });
+                    },
+                  ),
+                  if (isMealPlanGenerated) ...[
+                    Divider(height: 1, indent: 56, endIndent: 16, color: Colors.grey.shade100),
+                    _buildListTile(
+                      title: 'Reset rencana makan',
+                      subtitle: 'Buat ulang menu 30 hari',
+                      icon: Icons.refresh,
+                      iconColor: const Color(0xFFFFB55C),
+                      iconBgColor: const Color(0xFFFFB55C).withValues(alpha: 0.15),
+                      trailing: Icon(Icons.chevron_right, color: Colors.grey.shade400),
+                      onTap: () {
+                        _showConfirmDialog(
+                          context: context,
+                          title: 'Reset Rencana Makan?',
+                          content: 'Tindakan ini akan membuat ulang menu Anda.',
+                          onConfirm: () {
+                            ref.read(mealPlanProvider.notifier).regenerate();
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                ],
+              ),
             ),
-            onTap: () {
-              _showConfirmDialog(
-                context: context,
-                title: 'Konfirmasi Logout',
-                content: 'Yakin ingin keluar dari aplikasi?',
-                onConfirm: () async {
-                  await ref.read(supabaseProvider).auth.signOut();
-                  if (context.mounted) {
-                    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-                  }
-                },
-              );
-            },
-          ),
-        ],
+
+            // ── AKUN SECTION ─────────────────────────────────────────────────────
+            _buildSectionLabel('Akun'),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, 2))
+                ],
+              ),
+              child: Column(
+                children: [
+                  _buildListTile(
+                    title: 'Keluar',
+                    titleColor: Colors.red.shade600,
+                    subtitle: null,
+                    icon: Icons.logout,
+                    iconColor: Colors.red.shade400,
+                    iconBgColor: Colors.red.shade50,
+                    trailing: null,
+                    onTap: () {
+                      _showConfirmDialog(
+                        context: context,
+                        title: 'Konfirmasi Logout',
+                        content: 'Yakin ingin keluar dari aplikasi?',
+                        onConfirm: () async {
+                          await ref.read(supabaseProvider).auth.signOut();
+                          if (context.mounted) {
+                            Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                          }
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionLabel(String text) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+      padding: const EdgeInsets.only(left: 16, top: 16, bottom: 8),
       child: Text(
-        title,
+        text,
         style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: AppColors.primary,
+          color: Color(0xFF002045),
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.5,
         ),
       ),
+    );
+  }
+
+  Widget _buildListTile({
+    required String title,
+    String? subtitle,
+    Widget? subtitleWidget,
+    required IconData icon,
+    required Color iconColor,
+    required Color iconBgColor,
+    required Widget? trailing,
+    required VoidCallback onTap,
+    Color? titleColor,
+  }) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: iconBgColor,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: iconColor, size: 20),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: titleColor ?? const Color(0xFF002045),
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      subtitle: subtitleWidget ?? (subtitle != null
+          ? Text(
+              subtitle,
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+            )
+          : null),
+      trailing: trailing,
+      onTap: onTap,
     );
   }
 
@@ -127,18 +280,24 @@ class SettingsPage extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(title),
+        title: Text(title, style: const TextStyle(color: Color(0xFF002045), fontWeight: FontWeight.bold)),
         content: Text(content),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
+            child: const Text('Batal', style: TextStyle(color: Colors.grey)),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               onConfirm();
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF002045),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
             child: const Text('Ya'),
           ),
         ],
@@ -148,25 +307,31 @@ class SettingsPage extends ConsumerWidget {
 
   void _showBudgetDialog(BuildContext context, WidgetRef ref, int currentBudget) {
     double budget = currentBudget.toDouble();
+    final formatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+
     showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Ubah Budget Harian'),
+              title: const Text('Ubah Budget Harian', style: TextStyle(color: Color(0xFF002045), fontWeight: FontWeight.bold)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Rp ${budget.toInt().toString().replaceAllMapped(RegExp(r'\\B(?=(\\d{3})+(?!\\d))'), (match) => '.')}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    formatter.format(budget),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Color(0xFFFFB55C)),
                   ),
+                  const SizedBox(height: 16),
                   Slider(
                     value: budget,
                     min: 10000,
                     max: 200000,
                     divisions: 38,
+                    activeColor: const Color(0xFFFFB55C),
+                    inactiveColor: const Color(0xFFFFB55C).withValues(alpha: 0.3),
                     onChanged: (val) => setState(() => budget = val),
                   ),
                 ],
@@ -174,7 +339,7 @@ class SettingsPage extends ConsumerWidget {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Batal'),
+                  child: const Text('Batal', style: TextStyle(color: Colors.grey)),
                 ),
                 ElevatedButton(
                   onPressed: () async {
@@ -187,9 +352,13 @@ class SettingsPage extends ConsumerWidget {
                         'updated_at': DateTime.now().toUtc().toIso8601String(),
                       }).eq('user_id', user.id);
                       ref.invalidate(preferencesProvider);
-                      // ref.read(dummyMealPlanProvider.notifier).regenerate(); // optionally trigger meal plan
                     }
                   },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF002045),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
                   child: const Text('Simpan'),
                 ),
               ],

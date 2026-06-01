@@ -5,6 +5,7 @@ import '../../../app_theme.dart';
 import '../../../data/providers/supabase_provider.dart';
 import '../providers/ai_recommendation_provider.dart';
 import 'ai_recommendation_card.dart';
+import 'ai_recommendation_skeleton.dart';
 
 class AiRecommendationSection extends ConsumerWidget {
   const AiRecommendationSection({super.key});
@@ -18,7 +19,7 @@ class AiRecommendationSection extends ConsumerWidget {
     final aiAsync = ref.watch(aiRecommendationProvider);
 
     return aiAsync.when(
-      loading: () => _buildShimmerRow(),
+      loading: () => const AiRecommendationSkeleton(),
       error: (_, __) => const SizedBox.shrink(),
       data: (recommendations) {
         if (recommendations.isEmpty) return const SizedBox.shrink();
@@ -72,47 +73,6 @@ class AiRecommendationSection extends ConsumerWidget {
     );
   }
 
-  /// Tiga shimmer card abu-abu sebagai placeholder saat loading.
-  Widget _buildShimmerRow() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header placeholder
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Container(
-            width: 200,
-            height: 18,
-            decoration: BoxDecoration(
-              color: AppColors.outlineVariant.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(6),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 168,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            itemCount: 3,
-            itemBuilder: (_, __) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Container(
-                width: 200,
-                height: 160,
-                decoration: BoxDecoration(
-                  color: AppColors.outlineVariant.withOpacity(0.35),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-      ],
-    );
-  }
 }
 
 // ---------------------------------------------------------------------------

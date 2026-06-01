@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:usada_rare/features/onboarding/widgets/preferences_onboarding_sheet.dart';
@@ -85,8 +86,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
     return Scaffold(
-      backgroundColor: const Color(0xFF0D1B2A),
+      backgroundColor: Colors.white,
       body: FadeTransition(
         opacity: _screenFadeOut,
         child: Stack(
@@ -124,7 +126,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                                     width: 6,
                                     height: 6,
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFFE85D2F).withValues(alpha: 0.3 + (opacity * 1.4).clamp(0.0, 0.7)),
+                                      color: const Color(0xFF002045).withValues(alpha: 0.3 + (opacity * 1.4).clamp(0.0, 0.7)),
                                       shape: BoxShape.circle,
                                     ),
                                   );
@@ -143,7 +145,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       'Jelajahi kuliner autentik Denpasar',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
-                        color: Colors.white.withValues(alpha: 0.6),
+                        color: const Color(0xFF002045).withValues(alpha: 0.6),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -162,7 +164,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   textAlign: TextAlign.center,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
-                    color: Colors.white.withValues(alpha: 0.3),
+                    color: const Color(0xFF002045).withValues(alpha: 0.3),
                   ),
                 ),
               ),

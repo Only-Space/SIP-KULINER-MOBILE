@@ -9,10 +9,10 @@ import '../widgets/dashboard/dashboard_search.dart';
 import '../widgets/food/category_filters.dart';
 import '../widgets/food/section_header.dart';
 import '../widgets/food/food_grid_sliver.dart';
-import '../widgets/food/food_grid_skeleton_sliver.dart';
 import '../widgets/dashboard/dashboard_footer.dart';
 import '../widgets/dashboard/dashboard_bottom_nav.dart';
 import '../features/dashboard/widgets/ai_recommendation_section.dart';
+import '../features/explore/widgets/place_card_skeleton.dart';
 import 'login_pages.dart';
 import 'explore_page.dart';
 import 'profile_page.dart';
@@ -163,7 +163,12 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             ),
           ),
           placesState.isLoading 
-            ? const FoodGridSkeletonSliver(itemCount: 4)
+            ? const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: PlaceCardSkeleton(isList: true),
+                ),
+              )
             : placesState.error != null
               ? SliverToBoxAdapter(child: Center(child: Text('Error: ${placesState.error!.message}\nCoba muat ulang', textAlign: TextAlign.center)))
               : placesState.places.isEmpty
