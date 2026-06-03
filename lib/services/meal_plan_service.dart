@@ -82,12 +82,43 @@ class MealPlanService {
 
     const systemMessage = 'You are a meal planner. Reply ONLY with a JSON array, no other text.';
     
+    final favoritesText = preferences.favoriteFoods.isEmpty
+        ? 'tidak ada preferensi khusus'
+        : preferences.favoriteFoods.join(', ');
+
+    final avoidText = preferences.avoidFoods.isEmpty
+        ? 'tidak ada pantangan'
+        : preferences.avoidFoods.join(', ');
+
+    final budgetPerDay = preferences.dailyBudget;
+    final maxBreakfast = (budgetPerDay * 0.25).toInt();
+    final maxLunch     = (budgetPerDay * 0.38).toInt();
+    final maxDinner    = (budgetPerDay * 0.37).toInt();
+
     final userMessage = '''Create meal schedule for day $startDay to day $endDay.
-Daily budget: Rp ${preferences.dailyBudget}
+
+User preferences:
+- Favorite foods: $favoritesText
+- Foods to AVOID (NEVER include these): $avoidText
+- Daily budget: Rp $budgetPerDay
+
 Available restaurants: ${_buildPlaceList(nearbyPlaces)}
 
-Reply ONLY with this JSON array:
-[{"day":$startDay,"breakfast_food":"food name","breakfast_warung":"restaurant name","breakfast_price":10000,"lunch_food":"food name","lunch_warung":"restaurant name","lunch_price":20000,"dinner_food":"food name","dinner_warung":"restaurant name","dinner_price":25000}]
+BUDGET RULES (STRICT - do not violate):
+- Daily budget: Rp $budgetPerDay (HARD LIMIT per day)
+- Max breakfast price: Rp $maxBreakfast
+- Max lunch price: Rp $maxLunch
+- Max dinner price: Rp $maxDinner
+- breakfast_price + lunch_price + dinner_price MUST be <= Rp $budgetPerDay
+- If unsure, use lower prices to stay safe under budget
+
+STRICT FOOD RULES:
+1. NEVER suggest food containing: $avoidText
+2. Prioritize foods similar to: $favoritesText
+3. Use ONLY restaurant names from the available list above
+
+Reply ONLY with this JSON array, no other text:
+[{"day":$startDay,"breakfast_food":"food name","breakfast_warung":"restaurant name","breakfast_price":${maxBreakfast ~/ 2},"lunch_food":"food name","lunch_warung":"restaurant name","lunch_price":${maxLunch ~/ 2},"dinner_food":"food name","dinner_warung":"restaurant name","dinner_price":${maxDinner ~/ 2}}]
 
 Continue for all days up to day $endDay.''';
 
@@ -148,15 +179,16 @@ Continue for all days up to day $endDay.''';
       final days = <DailyMeal>[];
       for (int i = 0; i < parsed.length; i++) {
         final item = parsed[i] as Map<String, dynamic>;
-        
+
         final dayIndex = item['day'] as int? ?? startDay + i;
-        
-        days.add(DailyMeal(
+
+        final meal = DailyMeal(
           day: dayIndex,
           breakfast: _createMealItem(item, 'breakfast', preferences, nearbyPlaces, dayIndex),
           lunch: _createMealItem(item, 'lunch', preferences, nearbyPlaces, dayIndex),
           dinner: _createMealItem(item, 'dinner', preferences, nearbyPlaces, dayIndex),
-        ));
+        );
+        days.add(_enforceBudget(meal, preferences.dailyBudget));
       }
       
       if (days.isEmpty) {
@@ -194,14 +226,44 @@ Continue for all days up to day $endDay.''';
       final parsed = _buildFallbackChunk(startDay, endDay, nearbyPlaces, preferences);
       return parsed.map((item) {
         final dayIndex = item['day'] as int;
-        return DailyMeal(
+        final meal = DailyMeal(
           day: dayIndex,
           breakfast: _createMealItem(item, 'breakfast', preferences, nearbyPlaces, dayIndex),
           lunch: _createMealItem(item, 'lunch', preferences, nearbyPlaces, dayIndex),
           dinner: _createMealItem(item, 'dinner', preferences, nearbyPlaces, dayIndex),
         );
+        return _enforceBudget(meal, preferences.dailyBudget);
       }).toList();
     }
+  }
+
+  /// Koreksi harga jika total sehari melebihi [dailyBudget].
+  /// Scale-down proporsional: sarapan & siang dikali rasio,
+  /// makan malam mendapat sisa agar total persis sama dengan budget.
+  DailyMeal _enforceBudget(DailyMeal meal, int dailyBudget) {
+    int breakfast = meal.breakfast.price;
+    int lunch     = meal.lunch.price;
+    int dinner    = meal.dinner.price;
+    final total   = breakfast + lunch + dinner;
+
+    if (total > dailyBudget) {
+      final ratio = dailyBudget / total;
+      breakfast = (breakfast * ratio).toInt();
+      lunch     = (lunch * ratio).toInt();
+      dinner    = dailyBudget - breakfast - lunch; // sisa agar presisi
+
+      debugPrint('[MEAL_PLAN] Hari ${meal.day}: budget disesuaikan '
+          'dari Rp $total → Rp $dailyBudget');
+
+      return DailyMeal(
+        day: meal.day,
+        breakfast: meal.breakfast.copyWith(price: breakfast),
+        lunch: meal.lunch.copyWith(price: lunch),
+        dinner: meal.dinner.copyWith(price: dinner),
+      );
+    }
+
+    return meal;
   }
 
   MealItem _createMealItem(

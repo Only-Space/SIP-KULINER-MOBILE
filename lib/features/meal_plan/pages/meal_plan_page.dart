@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:usada_rare/app_theme.dart';
+import 'package:usada_rare/core/widgets/confirm_dialog.dart';
 import 'package:usada_rare/features/meal_plan/providers/meal_plan_provider.dart';
 import 'package:usada_rare/core/utils/format_utils.dart';
 import 'package:usada_rare/models/meal_plan.dart';
 import 'package:usada_rare/features/meal_plan/widgets/meal_plan_summary_card.dart';
-import 'package:usada_rare/features/meal_plan/widgets/meal_plan_skeleton.dart';
+import 'package:usada_rare/features/meal_plan/widgets/meal_plan_loading_screen.dart';
+import 'package:usada_rare/features/meal_plan/widgets/meal_plan_success_sheet.dart';
 
 class MealPlanPage extends ConsumerStatefulWidget {
   const MealPlanPage({super.key});
@@ -16,9 +18,41 @@ class MealPlanPage extends ConsumerStatefulWidget {
 }
 
 class _MealPlanPageState extends ConsumerState<MealPlanPage> {
+  /// Flag agar success sheet hanya tampil sekali per sesi generate.
+  bool _hasShownSuccess = false;
+
   @override
   Widget build(BuildContext context) {
     final mealPlanState = ref.watch(mealPlanProvider);
+
+    // ── Deteksi transisi loading → data untuk fresh generate ──────────
+    ref.listen<AsyncValue<MealPlan?>>(mealPlanProvider, (previous, next) {
+      if (previous?.isLoading == true &&
+          next.hasValue &&
+          next.value != null &&
+          !_hasShownSuccess) {
+        // generatedAt dalam 1 menit terakhir → ini fresh generate, bukan cache
+        final isFromCache = next.value!.generatedAt
+            .isBefore(DateTime.now().subtract(const Duration(minutes: 1)));
+
+        if (!isFromCache) {
+          _hasShownSuccess = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            showModalBottomSheet(
+              context: context,
+              backgroundColor: Colors.transparent,
+              barrierColor: Colors.black.withValues(alpha: 0.5),
+              isScrollControlled: true,
+              builder: (_) => MealPlanSuccessSheet(
+                estimatedCost: next.value!.totalEstimatedCost,
+                savings: next.value!.estimatedSavings,
+              ),
+            );
+          });
+        }
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -51,7 +85,15 @@ class _MealPlanPageState extends ConsumerState<MealPlanPage> {
                   itemCount: plan.days.length,
                   itemBuilder: (context, index) {
                     final day = plan.days[index];
-                    final isOverBudget = day.totalDailyCost > dailyBudget;
+                    final isOverBudget  = day.totalDailyCost > dailyBudget;
+                    final isNearBudget  = !isOverBudget &&
+                        day.totalDailyCost > (dailyBudget * 0.9).toInt();
+
+                    final totalColor = isOverBudget
+                        ? Colors.red.shade600
+                        : isNearBudget
+                            ? Colors.orange.shade600
+                            : Colors.green.shade600;
 
                     return Container(
                       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -76,12 +118,23 @@ class _MealPlanPageState extends ConsumerState<MealPlanPage> {
                                     color: AppColors.primary,
                                   ),
                                 ),
-                                Text(
-                                  'Rp ${day.totalDailyCost.toFormattedString()}',
-                                  style: GoogleFonts.publicSans(
-                                    color: isOverBudget ? Colors.red[700] : Colors.green[700],
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (isOverBudget) ...
+                                      [
+                                        Icon(Icons.warning_amber_rounded,
+                                            color: Colors.red.shade400, size: 14),
+                                        const SizedBox(width: 4),
+                                      ],
+                                    Text(
+                                      'Rp ${day.totalDailyCost.toFormattedString()}',
+                                      style: GoogleFonts.publicSans(
+                                        color: totalColor,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -113,9 +166,18 @@ class _MealPlanPageState extends ConsumerState<MealPlanPage> {
       ),
       floatingActionButton: mealPlanState.hasValue && mealPlanState.value != null
           ? FloatingActionButton(
-              onPressed: () {
-                _showRegenerateDialog(context, ref);
-              },
+              onPressed: () => showConfirmDialog(
+                context,
+                title: 'Buat Ulang Menu?',
+                message: 'Menu 30 hari akan dibuat ulang.\nProses ini membutuhkan beberapa saat.',
+                confirmLabel: 'Buat Ulang',
+                icon: Icons.auto_awesome_rounded,
+                iconColor: const Color(0xFFFFB55C),
+                confirmColor: const Color(0xFF002045),
+                onConfirm: () {
+                  ref.read(mealPlanProvider.notifier).clearCacheAndRegenerate();
+                },
+              ),
               backgroundColor: AppColors.primary,
               tooltip: 'Buat ulang menu',
               child: const Icon(Icons.refresh, color: Colors.white),
@@ -164,7 +226,7 @@ class _MealPlanPageState extends ConsumerState<MealPlanPage> {
   }
 
   Widget _buildLoadingState(WidgetRef ref) {
-    return const MealPlanSkeleton();
+    return const MealPlanLoadingScreen();
   }
 
   Widget _buildErrorState(BuildContext context, WidgetRef ref, Object err) {
@@ -276,27 +338,4 @@ class _MealPlanPageState extends ConsumerState<MealPlanPage> {
     );
   }
 
-  void _showRegenerateDialog(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Buat ulang menu?'),
-        content: const Text('Token AI akan digunakan untuk menyusun ulang rencana makan.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ref.read(mealPlanProvider.notifier).regenerate();
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-            child: const Text('Ya, Buat Ulang'),
-          ),
-        ],
-      ),
-    );
-  }
 }

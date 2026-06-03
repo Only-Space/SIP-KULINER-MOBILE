@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:usada_rare/app_theme.dart';
+import 'package:usada_rare/core/widgets/confirm_dialog.dart';
 import 'package:usada_rare/data/providers/supabase_provider.dart';
 import 'package:usada_rare/features/dashboard/providers/preferences_provider.dart';
 import 'package:usada_rare/features/profile/widgets/preferences_edit_sheet.dart';
@@ -154,16 +155,18 @@ class SettingsPage extends ConsumerWidget {
                       iconColor: const Color(0xFFFFB55C),
                       iconBgColor: const Color(0xFFFFB55C).withValues(alpha: 0.15),
                       trailing: Icon(Icons.chevron_right, color: Colors.grey.shade400),
-                      onTap: () {
-                        _showConfirmDialog(
-                          context: context,
-                          title: 'Reset Rencana Makan?',
-                          content: 'Tindakan ini akan membuat ulang menu Anda.',
-                          onConfirm: () {
-                            ref.read(mealPlanProvider.notifier).regenerate();
-                          },
-                        );
-                      },
+                      onTap: () => showConfirmDialog(
+                        context,
+                        title: 'Buat Ulang Menu?',
+                        message: 'Rencana makan 30 hari akan dibuat ulang\nberdasarkan preferensi terbaru kamu.',
+                        confirmLabel: 'Buat Ulang',
+                        icon: Icons.refresh_rounded,
+                        iconColor: const Color(0xFFFFB55C),
+                        confirmColor: const Color(0xFF002045),
+                        onConfirm: () {
+                          ref.read(mealPlanProvider.notifier).clearCacheAndRegenerate();
+                        },
+                      ),
                     ),
                   ],
                 ],
@@ -191,19 +194,22 @@ class SettingsPage extends ConsumerWidget {
                     iconColor: Colors.red.shade400,
                     iconBgColor: Colors.red.shade50,
                     trailing: null,
-                    onTap: () {
-                      _showConfirmDialog(
-                        context: context,
-                        title: 'Konfirmasi Logout',
-                        content: 'Yakin ingin keluar dari aplikasi?',
-                        onConfirm: () async {
-                          await ref.read(supabaseProvider).auth.signOut();
-                          if (context.mounted) {
-                            Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-                          }
-                        },
-                      );
-                    },
+                    onTap: () => showConfirmDialog(
+                      context,
+                      title: 'Keluar dari Akun?',
+                      message: 'Kamu akan keluar dari akun SIPKULINER.\nSampai jumpa lagi!',
+                      confirmLabel: 'Keluar',
+                      cancelLabel: 'Batal',
+                      icon: Icons.logout_rounded,
+                      iconColor: Colors.red.shade400,
+                      confirmColor: Colors.red.shade500,
+                      onConfirm: () async {
+                        await ref.read(supabaseProvider).auth.signOut();
+                        if (context.mounted) {
+                          Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                        }
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -268,40 +274,6 @@ class SettingsPage extends ConsumerWidget {
           : null),
       trailing: trailing,
       onTap: onTap,
-    );
-  }
-
-  void _showConfirmDialog({
-    required BuildContext context,
-    required String title,
-    required String content,
-    required VoidCallback onConfirm,
-  }) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title, style: const TextStyle(color: Color(0xFF002045), fontWeight: FontWeight.bold)),
-        content: Text(content),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Batal', style: TextStyle(color: Colors.grey)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onConfirm();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF002045),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: const Text('Ya'),
-          ),
-        ],
-      ),
     );
   }
 

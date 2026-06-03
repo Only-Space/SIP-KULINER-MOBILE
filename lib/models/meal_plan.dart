@@ -26,6 +26,16 @@ class MealItem {
     );
   }
 
+  /// Buat salinan MealItem dengan field tertentu diganti.
+  MealItem copyWith({int? price}) => MealItem(
+    foodName: foodName,
+    warungName: warungName,
+    warungArea: warungArea,
+    price: price ?? this.price,
+    tips: tips,
+    placeId: placeId,
+  );
+
   Map<String, dynamic> toJson() => {
     'food_name': foodName,
     'warung_name': warungName,

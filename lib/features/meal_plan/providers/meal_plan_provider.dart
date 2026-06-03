@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:usada_rare/data/providers/supabase_provider.dart';
 import 'package:usada_rare/features/dashboard/providers/preferences_provider.dart';
 import 'package:usada_rare/models/meal_plan.dart';
@@ -7,6 +8,12 @@ import 'package:usada_rare/models/geoapify_place.dart';
 import 'package:usada_rare/services/meal_plan_service.dart';
 import 'package:usada_rare/data/services/geoapify_service.dart';
 import 'package:geolocator/geolocator.dart';
+
+/// Flag key untuk one-shot cache clear saat prompt v2 di-deploy.
+const _kMealPlanV2ClearedKey = 'meal_plan_v2_cleared';
+
+/// Flag key untuk one-shot cache clear saat budget enforcement di-deploy.
+const _kBudgetEnforcedV1Key = 'budget_enforced_v1';
 
 final mealPlanLoadingMessageProvider = NotifierProvider<MealPlanLoadingNotifier, String>(() => MealPlanLoadingNotifier());
 
@@ -29,7 +36,36 @@ class MealPlanNotifier extends AsyncNotifier<MealPlan?> {
     if (userId == null) return null;
 
     final prefs = await ref.watch(preferencesProvider.future);
-    
+
+    // ── ONE-SHOT CACHE CLEAR: hapus cache lama saat prompt v2 pertama kali di-deploy ──
+    try {
+      final sp = await SharedPreferences.getInstance();
+      final alreadyCleared = sp.getBool(_kMealPlanV2ClearedKey) ?? false;
+      if (!alreadyCleared) {
+        debugPrint('[MEAL_PLAN_PROVIDER] Prompt v2 terdeteksi — menghapus cache lama.');
+        await supabase.from('meal_plan_cache').delete().eq('user_id', userId);
+        await sp.setBool(_kMealPlanV2ClearedKey, true);
+        await sp.setBool(_kBudgetEnforcedV1Key, true); // lewati check berikutnya
+        return _generateAndCache(prefs, userId);
+      }
+    } catch (e) {
+      debugPrint('[MEAL_PLAN_PROVIDER] One-shot clear v2 gagal (non-fatal): $e');
+    }
+
+    // ── ONE-SHOT CACHE CLEAR: hapus cache lama saat budget enforcement di-deploy ──
+    try {
+      final sp = await SharedPreferences.getInstance();
+      final budgetEnforced = sp.getBool(_kBudgetEnforcedV1Key) ?? false;
+      if (!budgetEnforced) {
+        debugPrint('[MEAL_PLAN_PROVIDER] Budget enforcement v1 terdeteksi — menghapus cache lama.');
+        await supabase.from('meal_plan_cache').delete().eq('user_id', userId);
+        await sp.setBool(_kBudgetEnforcedV1Key, true);
+        return _generateAndCache(prefs, userId);
+      }
+    } catch (e) {
+      debugPrint('[MEAL_PLAN_PROVIDER] One-shot clear budget_enforced_v1 gagal (non-fatal): $e');
+    }
+
     // Cek cache
     try {
       final cacheRes = await supabase
@@ -132,16 +168,42 @@ class MealPlanNotifier extends AsyncNotifier<MealPlan?> {
     if (userId == null) return;
 
     state = const AsyncValue.loading();
-    
+
     try {
-      // Hapus cache yang lama
       await supabase.from('meal_plan_cache').delete().eq('user_id', userId);
-      
+
       final prefs = await ref.read(preferencesProvider.future);
       final newPlan = await _generateAndCache(prefs, userId);
-      
+
       state = AsyncValue.data(newPlan);
     } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  /// Hapus cache Supabase lalu generate ulang meal plan.
+  /// Dipanggil dari SettingsPage ("Reset rencana makan") dan MealPlanPage FAB.
+  ///
+  /// PENTING: gunakan state = loading + _generateAndCache() langsung,
+  /// BUKAN ref.invalidateSelf() — invalidateSelf() men-trigger build() ulang
+  /// sehingga _generateAndCache() dipanggil dua kali secara paralel.
+  Future<void> clearCacheAndRegenerate() async {
+    final supabase = ref.read(supabaseProvider);
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null) return;
+
+    state = const AsyncValue.loading();
+
+    try {
+      await supabase.from('meal_plan_cache').delete().eq('user_id', userId);
+      debugPrint('[MEAL_PLAN_PROVIDER] Cache dihapus via clearCacheAndRegenerate.');
+
+      final prefs = await ref.read(preferencesProvider.future);
+      final newPlan = await _generateAndCache(prefs, userId);
+
+      state = AsyncValue.data(newPlan);
+    } catch (e, st) {
+      debugPrint('[MEAL_PLAN_PROVIDER] Gagal clearCacheAndRegenerate: $e');
       state = AsyncValue.error(e, st);
     }
   }
